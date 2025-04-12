@@ -41,18 +41,48 @@
 # Test Case Generator Code:
 import random
 
+
+def solve():
+    s = input()
+    n = len(s)
+    best_s = s
+
+    for i in range(n + 1):
+        for j in range(i, n + 1):
+            temp_s = list(s)
+            for k in range(i, j):
+                temp_s[k] = chr(((ord(temp_s[k]) - ord('a') - 1) % 26) + ord('a'))
+            temp_s = "".join(temp_s)
+            if temp_s < best_s:
+                best_s = temp_s
+    print(best_s)
+
+
 class Solution:
     def smallestString(self, s: str) -> str:
         n = len(s)
-        i = 0
-        while i < n and s[i] == "a":
-            i += 1
-        if i == n:
-            return s[:-1] + "z"
-        j = i
-        while j < n and s[j] != "a":
-            j += 1
-        return s[:i] + "".join(chr(ord(c) - 1) for c in s[i:j]) + s[j:]
+        arr = list(s)
+        start = -1
+        end = -1
+
+        for i in range(n):
+            if arr[i] != 'a':
+                start = i
+                break
+
+        if start == -1:
+            arr[n - 1] = 'z'
+            return "".join(arr)
+
+        end = start
+        while end + 1 < n and arr[end + 1] != 'a':
+            end += 1
+
+        for i in range(start, end + 1):
+            arr[i] = chr(ord(arr[i]) - 1)
+
+        return "".join(arr)
+
 
 def generate_test_case():
     solution = Solution()

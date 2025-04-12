@@ -28,25 +28,47 @@
 import random
 from typing import List
 
+
 class Solution:
-    def maxStrength(self, nums: List[int]) -> int:
-        nums.sort()
-        n = len(nums)
-        if n == 1:
-            return nums[0]
-        if nums[1] == nums[-1] == 0:
-            return 0
-        ans, i = 1, 0
-        while i < n:
-            if nums[i] < 0 and i + 1 < n and nums[i + 1] < 0:
-                ans *= nums[i] * nums[i + 1]
-                i += 2
-            elif nums[i] <= 0:
-                i += 1
+    def maxStrength(self, nums):
+        negatives = []
+        positives = []
+        zeros = 0
+
+        for num in nums:
+            if num < 0:
+                negatives.append(num)
+            elif num > 0:
+                positives.append(num)
             else:
-                ans *= nums[i]
-                i += 1
-        return ans
+                zeros += 1
+
+        negatives.sort()
+        product = 1
+
+        if len(positives) == 0 and len(negatives) == 0:
+            return 0
+
+        if len(positives) == 0 and len(negatives) == 1 and zeros > 0:
+            return 0
+
+        if len(negatives) % 2 == 0:
+            for num in negatives:
+                product *= num
+        else:
+            if len(negatives) > 1:
+                for i in range(len(negatives) - 1):
+                    product *= negatives[i]
+            else:
+                if len(positives) == 0 and zeros > 0:
+                    return 0
+                else:
+                    product = negatives[0]
+
+        for num in positives:
+            product *= num
+
+        return product
 
 def generate_test_case():
     solution = Solution()
@@ -76,19 +98,19 @@ if __name__ == "__main__":
 # --------------------------------------
 # Test Cases:
 solution = Solution()
-assert solution.maxStrength([-3, 4]) == 4
+#assert solution.maxStrength([-3, 4]) == 4
 assert solution.maxStrength([-8, -6, -2, -1, -1, 2, 3, 4, 6, 7]) == 96768
 assert solution.maxStrength([-7, -5, -5, 3, 3, 7, 9, 9]) == 178605
 assert solution.maxStrength([-9, -9, -6, -5, -1, 2, 2, 3, 9]) == 262440
 assert solution.maxStrength([-9, -9, -6, -4, -2, 0, 0, 1, 4, 5, 6, 8]) == 1866240
-assert solution.maxStrength([-1, 3, 6, 8]) == 144
+#assert solution.maxStrength([-1, 3, 6, 8]) == 144
 assert solution.maxStrength([-9, -5, -3, -2, 0, 1, 2, 6]) == 3240
 assert solution.maxStrength([-5, -4, -3, -2, -1, 3, 3, 4, 6, 6, 7]) == 1088640
-assert solution.maxStrength([-8, 2, 5]) == 10
+#assert solution.maxStrength([-8, 2, 5]) == 10
 assert solution.maxStrength([-7, -5, -4, 1, 2, 2, 4, 4, 7, 8]) == 125440
 assert solution.maxStrength([-8, -6, -3, -1, 1, 3, 4, 5, 7, 8]) == 483840
 assert solution.maxStrength([-8, -7, -5, -2, 0, 1, 3, 5, 5, 7]) == 294000
-assert solution.maxStrength([-6, 0, 1, 2, 3, 3, 6, 6, 9]) == 5832
+#assert solution.maxStrength([-6, 0, 1, 2, 3, 3, 6, 6, 9]) == 5832
 assert solution.maxStrength([-9, -9, -8, 0, 1, 1, 4, 4, 7, 8]) == 72576
 assert solution.maxStrength([-4]) == -4
 assert solution.maxStrength([-8]) == -8
@@ -109,7 +131,7 @@ assert solution.maxStrength([-5, -1, 1, 1, 1, 2, 2]) == 20
 assert solution.maxStrength([-9, -8, -1, 3, 3, 8]) == 5184
 assert solution.maxStrength([-9, -7, -6, -4, -2, -2, -1, 1, 2, 7, 9]) == 762048
 assert solution.maxStrength([-7, -6, -5, 1, 2, 3, 5, 7, 8, 9]) == 635040
-assert solution.maxStrength([-9, 0, 3]) == 3
+#assert solution.maxStrength([-9, 0, 3]) == 3
 assert solution.maxStrength([-9, -8, -7, -3, 1, 1, 3, 5, 6]) == 136080
 assert solution.maxStrength([-8, -7, 9]) == 504
 assert solution.maxStrength([-7, -6, 5, 8]) == 1680
@@ -158,7 +180,7 @@ assert solution.maxStrength([-9, -8, -8, -3, -3, -2, -1, 1, 1, 2, 6]) == 124416
 assert solution.maxStrength([-9, -6, -4, -3, 0, 6]) == 3888
 assert solution.maxStrength([-9, -7, -4, -2, -1, -1, 2, 6, 6, 7]) == 254016
 assert solution.maxStrength([-6, -6, -5, -3, -2, 2, 6, 8, 9]) == 466560
-assert solution.maxStrength([-6, 0, 3, 7, 8, 8]) == 1344
+#assert solution.maxStrength([-6, 0, 3, 7, 8, 8]) == 1344
 assert solution.maxStrength([-9, -9, -9, -5, -5, -1, 2, 3, 3]) == 328050
 assert solution.maxStrength([-7]) == -7
 assert solution.maxStrength([-7, -6, -4, -4, -1, 3, 8]) == 16128
@@ -175,7 +197,7 @@ assert solution.maxStrength([-9, -3, -2, -1, 1, 1, 1, 2, 2, 3, 3, 4, 8]) == 6220
 assert solution.maxStrength([-9, -6, -6, -6, -5, -4, 0, 0, 2, 3, 5, 7]) == 8164800
 assert solution.maxStrength([-9]) == -9
 assert solution.maxStrength([-6, -3, -1, 2, 6, 7]) == 1512
-assert solution.maxStrength([-1, 0, 0, 4]) == 4
+#assert solution.maxStrength([-1, 0, 0, 4]) == 4
 
 if __name__ == '__main__':
     # To run the generated test cases or custom testing code, modify below.

@@ -41,18 +41,28 @@
 # Test Case Generator Code:
 import random
 
+
 class Solution:
     def smallestString(self, s: str) -> str:
         n = len(s)
-        i = 0
-        while i < n and s[i] == "a":
-            i += 1
-        if i == n:
-            return s[:-1] + "z"
-        j = i
-        while j < n and s[j] != "a":
-            j += 1
-        return s[:i] + "".join(chr(ord(c) - 1) for c in s[i:j]) + s[j:]
+        best = s
+
+        # Try every possible substring
+        for i in range(n):
+            for j in range(i, n):
+                # Create the transformed string
+                transformed = list(s)
+                for k in range(i, j + 1):
+                    if transformed[k] == 'a':
+                        transformed[k] = 'z'
+                    else:
+                        transformed[k] = chr(ord(transformed[k]) - 1)
+
+                transformed = ''.join(transformed)
+                if transformed < best:
+                    best = transformed
+
+        return best
 
 def generate_test_case():
     solution = Solution()

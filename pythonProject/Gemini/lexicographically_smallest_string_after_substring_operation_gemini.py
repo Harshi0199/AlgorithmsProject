@@ -41,18 +41,35 @@
 # Test Case Generator Code:
 import random
 
+
 class Solution:
     def smallestString(self, s: str) -> str:
-        n = len(s)
-        i = 0
-        while i < n and s[i] == "a":
-            i += 1
-        if i == n:
-            return s[:-1] + "z"
-        j = i
-        while j < n and s[j] != "a":
-            j += 1
-        return s[:i] + "".join(chr(ord(c) - 1) for c in s[i:j]) + s[j:]
+        # Convert the string into a list for easier modification.
+        s_list = list(s)
+        n = len(s_list)
+
+        # Indicator to check if we have made a transformation.
+        transformed = False
+
+        for i in range(n):
+            # Start the operation at the first character that is not 'a'
+            if s_list[i] != 'a':
+                # Continue transforming until we encounter an 'a' or reach the end.
+                while i < n and s_list[i] != 'a':
+                    # Replace the character with its preceding letter.
+                    s_list[i] = chr(ord(s_list[i]) - 1)
+                    i += 1
+                transformed = True
+                break
+
+        # If no transformation has been done (all letters are 'a'),
+        # then we must transform the last letter.
+        if not transformed:
+            s_list[-1] = 'z'
+
+        # Return the modified list as a string.
+        return "".join(s_list)
+
 
 def generate_test_case():
     solution = Solution()

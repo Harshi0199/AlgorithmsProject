@@ -71,6 +71,8 @@ if __name__ == "__main__":
 
 # --------------------------------------
 # Test Cases:
+
+assert solution.advantageCount([12, 24, 8, 32], [13, 25, 32, 11]) == [24, 32, 8, 12]
 assert solution.advantageCount([37, 100], [64, 98]) == [100, 37]
 assert solution.advantageCount([19, 46, 74, 79], [72, 94, 68, 4]) == [79, 46, 74, 19]
 assert solution.advantageCount([10, 23, 29, 43, 45, 77, 81, 87, 91], [23, 18, 54, 9, 85, 60, 12, 48, 50]) == [43, 29, 87, 10, 45, 91, 23, 77, 81]

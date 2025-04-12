@@ -36,21 +36,36 @@
 # Test Case Generator Code:
 import random
 
+
 class Solution:
     def maximumXorProduct(self, a: int, b: int, n: int) -> int:
-        mod = 10**9 + 7
-        ax, bx = (a >> n) << n, (b >> n) << n
+        MOD = 10 ** 9 + 7
+
+        # Extract the parts we cannot modify (bits beyond n)
+        mask = (1 << n) - 1
+        new_a = a & ~mask
+        new_b = b & ~mask
+
+        # Process each bit we can modify
         for i in range(n - 1, -1, -1):
-            x = a >> i & 1
-            y = b >> i & 1
-            if x == y:
-                ax |= 1 << i
-                bx |= 1 << i
-            elif ax > bx:
-                bx |= 1 << i
+            bit = 1 << i
+
+            bit_a = (a >> i) & 1
+            bit_b = (b >> i) & 1
+
+            if bit_a == bit_b:
+                # If both bits are the same, set both result bits to 1
+                new_a |= bit
+                new_b |= bit
             else:
-                ax |= 1 << i
-        return ax * bx % mod
+                # If bits differ, give the 1 to the smaller number
+                if new_a < new_b:
+                    new_a |= bit
+                else:
+                    new_b |= bit
+
+        # Calculate the final result with modulo
+        return (new_a % MOD) * (new_b % MOD) % MOD
 
 def generate_test_case():
     solution = Solution()

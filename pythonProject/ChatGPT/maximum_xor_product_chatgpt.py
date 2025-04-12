@@ -36,51 +36,196 @@
 # Test Case Generator Code:
 import random
 
+
 class Solution:
     def maximumXorProduct(self, a: int, b: int, n: int) -> int:
-        mod = 10**9 + 7
-        ax, bx = (a >> n) << n, (b >> n) << n
-        for i in range(n - 1, -1, -1):
-            x = a >> i & 1
-            y = b >> i & 1
-            if x == y:
-                ax |= 1 << i
-                bx |= 1 << i
-            elif ax > bx:
-                bx |= 1 << i
+        mod = 10 ** 9 + 7
+        # Let L = 2^n; note that since 0 <= x < 2^n,
+        # only the lower n bits of a and b change under XOR with x.
+        # We decompose a and b into high‐bits (which remain constant)
+        # and low‐bits (which can be “flipped” by x).
+        L = 1 << n
+        A0 = a % L  # lower n bits of a
+        B0 = b % L  # lower n bits of b
+        A_prime = a - A0  # high part of a (multiple of L)
+        B_prime = b - B0  # high part of b (multiple of L)
+
+        # Let c0 = A0 XOR B0.
+        # Now, note that if we define u = (A0 XOR x) then
+        # (B0 XOR x) = u XOR c0  (because A0 XOR B0 = c0).
+        # In this way, our product becomes:
+        #     (a XOR x) * (b XOR x)
+        #   = [A_prime + (A0 XOR x)] * [B_prime + (B0 XOR x)]
+        #   = A_prime*B_prime + A_prime*(u XOR c0) + B_prime*u + u*(u XOR c0).
+        #
+        # Since A_prime and B_prime are constants independent of x, we can
+        # focus on maximizing the “variable part” over u in [0, 2^n).
+        # Note that u can be any n‐bit number since the mapping x -> A0 XOR x is a bijection.
+        #
+        # Next, observe that u*(u XOR c0) can be “optimized” bit–wise.
+        # Write the n bits 0 <= i < n. For each bit i, note that:
+        # - If the i–th bit of c0 is 0 then (u XOR c0)_i = u_i.
+        #   In that case, setting u_i = 1 increases both u and (u XOR c0)
+        #   by 2^i. It is always beneficial.
+        # - If the i–th bit of c0 is 1 then (u XOR c0)_i = 1 - u_i.
+        #   There we have a choice: if we set u_i = 0 then we “gain” 2^i
+        #   in (u XOR c0); if we set u_i = 1 then we “gain” 2^i in u.
+        #
+        # In other words, for bits where c0 has a 0 we are forced to take 1;
+        # for bits where c0 has a 1 we can choose.
+        #
+        # Let I0 be the set of bit positions where c0 is 0 and I1 where c0 is 1.
+        # Then the lower–n–bit part u decomposes as:
+        #      u = S0 + U1   where S0 = sum_{i in I0} 2^i (forced ones)
+        # and we may choose U1 as any sum of a subset of {2^i for i in I1}.
+        # Also, note that (u XOR c0) becomes:
+        #      u XOR c0 = S0 + V1   where V1 = sum_{i in I1} ((1 - d_i) * 2^i)
+        # and since for every i in I1 either u_i = 1 (contributing 2^i to U1)
+        # or 0 (contributing 2^i to V1) we have U1 + V1 = S1, where
+        #      S1 = sum_{i in I1} 2^i.
+        #
+        # Then our product becomes:
+        #   F_total = A_prime*B_prime
+        #           + A_prime*(S0 + V1)
+        #           + B_prime*(S0 + U1)
+        #           + (S0 + U1) * (S0 + V1).
+        #
+        # Expanding, using V1 = S1 - U1, we get:
+        #   F_total = A_prime*B_prime
+        #           + (A_prime + B_prime)*S0
+        #           + S0^2 + S0*S1 + A_prime*S1
+        #           + U1*(S1 + B_prime - A_prime) - U1^2.
+        #
+        # Define a constant part (independent of U1) as:
+        #   constant = A_prime*B_prime + (A_prime+B_prime)*S0 + S0^2 + S0*S1 + A_prime*S1.
+        #
+        # Then the variable part is a quadratic in U1:
+        #   Q(U1) = (S1 + B_prime - A_prime)*U1 - U1^2.
+        #
+        # Since U1 can only take values that are sums of a subset of {2^i for i in I1}
+        # (i.e. numbers that “use” only the bit positions in I1), our goal is to choose
+        # an achievable U1 (0 <= U1 <= S1) that maximizes Q(U1).
+        #
+        # The continuous optimum of the quadratic −U1^2 + C * U1 (with C = S1+B_prime-A_prime)
+        # is at U1* = C/2. Hence, the best achievable U1 is the one (subject to 0 <= U1 <= S1)
+        # that is as close as possible to T_target = clamp(C/2, 0, S1).
+        #
+        # We now use the following strategy:
+        # 1. Compute I0 and I1 (bit positions in [0, n) where c0 has 0 or 1, respectively).
+        # 2. For bits in I0 the choice is forced (we set them to 1).
+        # 3. For I1, let S1 = sum_{i in I1} 2^i.
+        #    Define T_target = (S1 + B_prime - A_prime)/2, clamped to [0, S1].
+        # 4. If the set I1 is “contiguous” (i.e. if the bit positions in I1 form a block of consecutive
+        #    integers) then every multiple of d = 2^(min(I1)) is achievable and the best U1 can be
+        #    found by simply rounding T_target (and trying the nearest two multiples).
+        # 5. Otherwise, use a meet–in–the–middle algorithm to find among all achievable U1 (which are
+        #    sums of the numbers {2^i : i in I1}) one that is closest to T_target.
+
+        c0 = A0 ^ B0
+        I0 = []
+        I1 = []
+        for i in range(n):
+            if (c0 >> i) & 1:
+                I1.append(i)
             else:
-                ax |= 1 << i
-        return ax * bx % mod
+                I0.append(i)
+        S0 = sum(1 << i for i in I0)
+        S1 = sum(1 << i for i in I1)
 
-def generate_test_case():
-    solution = Solution()
-    
-    # Generate random values for a, b, and n
-    a = random.randint(0, 2**50 - 1)
-    b = random.randint(0, 2**50 - 1)
-    n = random.randint(0, 50)
+        # Compute the constant part (independent of our free decision)
+        constant = (A_prime * B_prime) + ((A_prime + B_prime) * S0) + (S0 * S0) + (S0 * S1) + (A_prime * S1)
 
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.maximumXorProduct(a, b, n)
+        # Our quadratic variable part is:
+        #    Q(U1) = (S1 + B_prime - A_prime)*U1 - U1^2.
+        # Let C_val be (S1+B_prime-A_prime).
+        C_val = S1 + B_prime - A_prime
 
-    return a, b, n, expected_result
+        # The continuous optimum is at U1 = C_val/2.
+        T_target = C_val / 2.0
+        if T_target < 0:
+            T_target = 0
+        if T_target > S1:
+            T_target = S1
 
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        a, b, n, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.maximumXorProduct(a, b, n) == expected_result
-        print(f"assert solution.maximumXorProduct({a}, {b}, {n}) == {expected_result}")
-        test_case_generator_results.append(f"assert solution.maximumXorProduct({a}, {b}, {n}) == {expected_result}") # You can find that we construct the test case in the same format as the example
-    return test_case_generator_results
-solution = Solution()
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
+        # Now we need to choose the best achievable U1.
+        best_U1 = 0  # default if there is no free bit choice.
+        if not I1:
+            best_U1 = 0  # nothing to choose; U1 is forced to 0.
+        else:
+            sorted_I1 = sorted(I1)
+            # Check whether I1 is contiguous. For I1 to be contiguous, if we let m = len(I1)
+            # then the sorted positions should equal list(range(min(I1), min(I1) + m)).
+            contiguous = (sorted_I1 == list(range(sorted_I1[0], sorted_I1[0] + len(sorted_I1))))
+            if contiguous:
+                # In a contiguous set of bit positions, every number that is a multiple of d is achievable,
+                # where d = 2^(min(I1)). In that case the set of achievable U1 is { k*d : 0 <= k <= (2^(m) - 1) }
+                d = 1 << sorted_I1[0]
+                # Let candidate1 be the greatest achievable U1 not exceeding T_target.
+                k1 = int(T_target) // d
+                cand1 = k1 * d
+                cand2 = cand1 + d
+                cands = {cand1, cand2, 0, S1}
+                best_U1 = None
+                best_Q = None
+                for cand in cands:
+                    if cand < 0 or cand > S1:
+                        continue
+                    Q_val = C_val * cand - cand * cand
+                    if best_Q is None or Q_val > best_Q:
+                        best_Q = Q_val
+                        best_U1 = cand
+            else:
+                # When the available bit positions are not contiguous,
+                # we use a meet–in–the–middle approach.
+                # arr contains the values 2^i for i in I1.
+                arr = [1 << i for i in I1]
+                m = len(arr)
+                mid = m // 2
+                left = arr[:mid]
+                right = arr[mid:]
+                left_sums = []
+                right_sums = []
+
+                def gen_subs(vals, index, current, result):
+                    if index == len(vals):
+                        result.append(current)
+                        return
+                    gen_subs(vals, index + 1, current, result)
+                    gen_subs(vals, index + 1, current + vals[index], result)
+
+                gen_subs(left, 0, 0, left_sums)
+                gen_subs(right, 0, 0, right_sums)
+                left_sums.sort()
+                right_sums.sort()
+
+                # For each sum in left_sums, we look for a value in right_sums so that the total
+                # is as close as possible to T_target.
+                import bisect
+                best_candidate = None
+                best_diff = None
+                for s in left_sums:
+                    target2 = T_target - s
+                    pos = bisect.bisect_left(right_sums, target2)
+                    for j in [pos - 1, pos, pos + 1]:
+                        if 0 <= j < len(right_sums):
+                            candidate = s + right_sums[j]
+                            if candidate < 0 or candidate > S1:
+                                continue
+                            diff = abs(candidate - T_target)
+                            if best_diff is None or diff < best_diff:
+                                best_diff = diff
+                                best_candidate = candidate
+                best_U1 = best_candidate if best_candidate is not None else 0
+
+        # The optimum variable contribution is Q_opt = C_val * best_U1 - best_U1^2.
+        Q_opt = C_val * best_U1 - best_U1 * best_U1
+        result = constant + Q_opt
+        return result % mod
+
 
 # --------------------------------------
 # Test Cases:
+solution = Solution()
 assert solution.maximumXorProduct(1072297517651408, 437909297928259, 4) == 696951069
 assert solution.maximumXorProduct(1033502817572754, 488258145285387, 42) == 844189533
 assert solution.maximumXorProduct(518879363354668, 725525769136565, 20) == 181761524

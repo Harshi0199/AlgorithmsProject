@@ -52,35 +52,9 @@ class Solution:
                 ax |= 1 << i
         return ax * bx % mod
 
-def generate_test_case():
-    solution = Solution()
-    
-    # Generate random values for a, b, and n
-    a = random.randint(0, 2**50 - 1)
-    b = random.randint(0, 2**50 - 1)
-    n = random.randint(0, 50)
-
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.maximumXorProduct(a, b, n)
-
-    return a, b, n, expected_result
-
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        a, b, n, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.maximumXorProduct(a, b, n) == expected_result
-        print(f"assert solution.maximumXorProduct({a}, {b}, {n}) == {expected_result}")
-        test_case_generator_results.append(f"assert solution.maximumXorProduct({a}, {b}, {n}) == {expected_result}") # You can find that we construct the test case in the same format as the example
-    return test_case_generator_results
-solution = Solution()
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
-
 # --------------------------------------
 # Test Cases:
+solution = Solution()
 assert solution.maximumXorProduct(1072297517651408, 437909297928259, 4) == 696951069
 assert solution.maximumXorProduct(1033502817572754, 488258145285387, 42) == 844189533
 assert solution.maximumXorProduct(518879363354668, 725525769136565, 20) == 181761524
