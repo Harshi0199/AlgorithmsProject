@@ -35,21 +35,33 @@
 
 # --------------------------------------
 # Test Case Generator Code:
-import random
+from typing import List
+from bisect import bisect_right
+
 
 class Solution:
-    def maxProfitAssignment(self, difficulty, profit, worker):
-        n = len(difficulty)
-        job = [(difficulty[i], profit[i]) for i in range(n)]
-        job.sort(key=lambda x: x[0])
-        worker.sort()
-        i = t = res = 0
-        for w in worker:
-            while i < n and job[i][0] <= w:
-                t = max(t, job[i][1])
-                i += 1
-            res += t
-        return res
+    def maxProfitAssignment(self, difficulty: List[int], profit: List[int], worker: List[int]) -> int:
+        # Pair up job difficulty and profit and sort by difficulty.
+        jobs = sorted(zip(difficulty, profit))
+
+        # Precompute the best profit up to each job's difficulty.
+        best_profit = 0
+        filtered_jobs = []
+        for d, p in jobs:
+            best_profit = max(best_profit, p)
+            filtered_jobs.append((d, best_profit))
+
+        # Extract the job difficulties for binary search.
+        job_difficulties = [d for d, _ in filtered_jobs]
+
+        total_profit = 0
+        # For each worker, use binary search to find the best job they can do.
+        for ability in worker:
+            idx = bisect_right(job_difficulties, ability)
+            if idx > 0:
+                total_profit += filtered_jobs[idx - 1][1]
+
+        return total_profit
 
 # Test Cases:
 solution = Solution()

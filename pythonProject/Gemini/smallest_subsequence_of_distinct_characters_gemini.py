@@ -21,20 +21,26 @@
 # </ul>
 # <p>&nbsp;</p>
 # <strong>Note:</strong> This question is the same as 316: <a href="https://leetcode.com/problems/remove-duplicate-letters/" target="_blank">https://leetcode.com/problems/remove-duplicate-letters/</a>
-
 class Solution:
     def smallestSubsequence(self, s: str) -> str:
-        last = {c: i for i, c in enumerate(s)}
-        stk = []
-        vis = set()
-        for i, c in enumerate(s):
-            if c in vis:
-                continue
-            while stk and stk[-1] > c and last[stk[-1]] > i:
-                vis.remove(stk.pop())
-            stk.append(c)
-            vis.add(c)
-        return "".join(stk)
+        last_occurrence = {}
+        for i, char in enumerate(s):
+            last_occurrence[char] = i
+
+        stack = []
+        seen = set()
+
+        for i, char in enumerate(s):
+            if char not in seen:
+                while stack and char < stack[-1] and i < last_occurrence[stack[-1]]:
+                    seen.remove(stack.pop())
+
+                stack.append(char)
+                seen.add(char)
+
+        return "".join(stack)
+
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.smallestSubsequence('zzkixyest') == 'zkixyest'

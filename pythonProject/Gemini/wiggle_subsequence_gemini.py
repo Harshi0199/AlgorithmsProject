@@ -42,15 +42,22 @@ import random
 from typing import List
 
 class Solution:
-    def wiggleMaxLength(self, nums: List[int]) -> int:
-        up = down = 1
+    def wiggleMaxLength(self, nums: list[int]) -> int:
+        if len(nums) < 2:
+            return len(nums)
+
+        up = 1
+        down = 1
+
         for i in range(1, len(nums)):
             if nums[i] > nums[i - 1]:
-                up = max(up, down + 1)
+                up = down + 1
             elif nums[i] < nums[i - 1]:
-                down = max(down, up + 1)
+                down = up + 1
+
         return max(up, down)
 
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.wiggleMaxLength([71, 24, 67, 64, 85, 65, 39, 68, 29, 80]) == 9

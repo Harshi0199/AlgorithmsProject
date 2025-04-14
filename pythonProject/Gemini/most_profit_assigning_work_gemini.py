@@ -33,24 +33,27 @@
 # 	<li><code>1 &lt;= difficulty[i], profit[i], worker[i] &lt;= 10<sup>5</sup></code></li>
 # </ul>
 
-# --------------------------------------
-# Test Case Generator Code:
-import random
-
 class Solution:
-    def maxProfitAssignment(self, difficulty, profit, worker):
-        n = len(difficulty)
-        job = [(difficulty[i], profit[i]) for i in range(n)]
-        job.sort(key=lambda x: x[0])
-        worker.sort()
-        i = t = res = 0
-        for w in worker:
-            while i < n and job[i][0] <= w:
-                t = max(t, job[i][1])
-                i += 1
-            res += t
-        return res
+    def maxProfitAssignment(self, difficulty: list[int], profit: list[int], worker: list[int]) -> int:
+        jobs = []
+        for i in range(len(difficulty)):
+            jobs.append((difficulty[i], profit[i]))
 
+        jobs.sort()
+        worker.sort()
+
+        max_profit = 0
+        job_idx = 0
+        best_profit_so_far = 0
+
+        for worker_ability in worker:
+            while job_idx < len(jobs) and jobs[job_idx][0] <= worker_ability:
+                best_profit_so_far = max(best_profit_so_far, jobs[job_idx][1])
+                job_idx += 1
+
+            max_profit += best_profit_so_far
+
+        return max_profit
 # Test Cases:
 solution = Solution()
 assert solution.maxProfitAssignment([80608, 21881, 88399, 81269, 18256, 77890], [42988, 54269, 6735, 33154, 93369, 21957], [8546, 10074, 12011, 15735, 58316, 61580, 89932, 92995]) == 373476

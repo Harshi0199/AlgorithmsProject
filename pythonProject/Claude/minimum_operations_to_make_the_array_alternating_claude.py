@@ -37,23 +37,65 @@
 
 # --------------------------------------
 # Test Case Generator Code:
-
+import random
 from collections import Counter
 
+
 class Solution:
-    def minimumOperations(self, nums):
-        def get(i):
-            c = Counter(nums[i::2]).most_common(2)
-            if not c:
-                return [(0, 0), (0, 0)]
-            if len(c) == 1:
-                return [c[0], (0, 0)]
-            return c
-
+    def minimumOperations(self, nums: list[int]) -> int:
         n = len(nums)
-        return min(n - (n1 + n2) for a, n1 in get(0) for b, n2 in get(1) if a != b)
 
-# --------------------------------------
+        # If array has only 1 element, it's already alternating
+        if n == 1:
+            return 0
+
+        # If array has only 2 elements, they just need to be different
+        if n == 2:
+            return 1 if nums[0] == nums[1] else 0
+
+        # For longer arrays, we need to handle even and odd indices separately
+        # We'll make two frequency maps for each position type
+        even_freq = {}  # For indices 0, 2, 4, ...
+        odd_freq = {}  # For indices 1, 3, 5, ...
+
+        # Count frequency of each number at even and odd positions
+        for i in range(n):
+            if i % 2 == 0:
+                even_freq[nums[i]] = even_freq.get(nums[i], 0) + 1
+            else:
+                odd_freq[nums[i]] = odd_freq.get(nums[i], 0) + 1
+
+        # Find the most frequent number and second most frequent number at even positions
+        even_max_num = max(even_freq.items(), key=lambda x: x[1]) if even_freq else (0, 0)
+        even_second_max = (0, 0)
+        for num, freq in even_freq.items():
+            if num != even_max_num[0] and freq > even_second_max[1]:
+                even_second_max = (num, freq)
+
+        # Find the most frequent number and second most frequent number at odd positions
+        odd_max_num = max(odd_freq.items(), key=lambda x: x[1]) if odd_freq else (0, 0)
+        odd_second_max = (0, 0)
+        for num, freq in odd_freq.items():
+            if num != odd_max_num[0] and freq > odd_second_max[1]:
+                odd_second_max = (num, freq)
+
+        # Calculate total operations needed
+        even_count = sum(1 for i in range(n) if i % 2 == 0)
+        odd_count = n - even_count
+
+        # Case 1: Use the most frequent numbers at even and odd positions if they're different
+        if even_max_num[0] != odd_max_num[0]:
+            return (even_count - even_max_num[1]) + (odd_count - odd_max_num[1])
+
+        # Case 2: We need to change either the even or odd most frequent number
+        # Option 1: Keep even_max, change odd to odd_second_max
+        ops1 = (even_count - even_max_num[1]) + (odd_count - odd_second_max[1])
+
+        # Option 2: Keep odd_max, change even to even_second_max
+        ops2 = (even_count - even_second_max[1]) + (odd_count - odd_max_num[1])
+
+        return min(ops1, ops2)
+
 # Test Cases:
 solution = Solution()
 assert solution.minimumOperations([19, 61, 82]) == 1

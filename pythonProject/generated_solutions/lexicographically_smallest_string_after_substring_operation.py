@@ -54,33 +54,9 @@ class Solution:
             j += 1
         return s[:i] + "".join(chr(ord(c) - 1) for c in s[i:j]) + s[j:]
 
-def generate_test_case():
-    solution = Solution()
-    
-    # Generate random string
-    s = ''.join(random.choice('abcdefghijklmnopqrstuvwxyz') for _ in range(random.randint(1, 10)))
-    
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.smallestString(s)
-
-    return s, expected_result
-
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        s, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.smallestString(s) == expected_result
-        print(f"assert solution.smallestString('{s}') == '{expected_result}'")
-        test_case_generator_results.append(f"assert solution.smallestString('{s}') == '{expected_result}'")
-    return test_case_generator_results
-solution = Solution()
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
-
 # --------------------------------------
 # Test Cases:
+solution = Solution()
 assert solution.smallestString('xzxhko') == 'wywgjn'
 assert solution.smallestString('k') == 'j'
 assert solution.smallestString('seeep') == 'rdddo'

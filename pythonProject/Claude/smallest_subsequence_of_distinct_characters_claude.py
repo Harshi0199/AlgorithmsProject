@@ -21,20 +21,37 @@
 # </ul>
 # <p>&nbsp;</p>
 # <strong>Note:</strong> This question is the same as 316: <a href="https://leetcode.com/problems/remove-duplicate-letters/" target="_blank">https://leetcode.com/problems/remove-duplicate-letters/</a>
-
 class Solution:
     def smallestSubsequence(self, s: str) -> str:
-        last = {c: i for i, c in enumerate(s)}
-        stk = []
-        vis = set()
-        for i, c in enumerate(s):
-            if c in vis:
+        # Count occurrences of each character
+        last_occurrence = {}
+        for i, char in enumerate(s):
+            last_occurrence[char] = i
+
+        # Stack to build our result
+        stack = []
+        # Keep track of characters in our stack
+        seen = set()
+
+        for i, char in enumerate(s):
+            # If we've already included this character in our stack, skip it
+            if char in seen:
                 continue
-            while stk and stk[-1] > c and last[stk[-1]] > i:
-                vis.remove(stk.pop())
-            stk.append(c)
-            vis.add(c)
-        return "".join(stk)
+
+            # While the stack is not empty, the current character is lexicographically smaller
+            # than the last character in the stack, and the last character will appear later,
+            # pop the last character from the stack
+            while stack and char < stack[-1] and i < last_occurrence[stack[-1]]:
+                seen.remove(stack.pop())
+
+            # Add the current character to our stack and mark it as seen
+            stack.append(char)
+            seen.add(char)
+
+        # Convert the stack to a string and return
+        return ''.join(stack)
+
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.smallestSubsequence('zzkixyest') == 'zkixyest'

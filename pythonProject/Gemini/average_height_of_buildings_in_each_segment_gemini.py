@@ -61,30 +61,50 @@
 # Test Case Generator Code:
 import random
 from collections import defaultdict
+from typing import List
 
 
 class Solution:
-    def averageHeightOfBuildings(self, buildings):
-        height = defaultdict(int)
-        cnt = defaultdict(int)
-        for s, e, h in buildings:
-            cnt[s] += 1
-            cnt[e] -= 1
-            height[s] += h
-            height[e] -= h
-        ans = []
-        i = h = n = 0
-        for j in sorted(cnt.keys()):
-            if n:
-                t = [i, j, h // n]
-                if ans and ans[-1][1] == i and ans[-1][2] == t[-1]:
-                    ans[-1][1] = j
+    def averageHeightOfBuildings(self, buildings: list[list[int]]) -> list[list[int]]:
+        events = []
+        for start, end, height in buildings:
+            events.append((start, height))
+            events.append((end, -height))
+
+        events.sort()
+
+        street = []
+        current_height_sum = 0
+        current_building_count = 0
+        start = -1
+
+        for i in range(len(events)):
+            pos, height_change = events[i]
+
+            if current_building_count == 0:
+                if height_change > 0:
+                    start = pos
+                    current_height_sum += height_change
+                    current_building_count += 1
+            else:
+                if height_change > 0:
+                    current_height_sum += height_change
+                    current_building_count += 1
                 else:
-                    ans.append(t)
-            i = j
-            h += height[j]
-            n += cnt[j]
-        return ans
+                    current_height_sum += height_change
+                    current_building_count -= 1
+
+            if i + 1 < len(events):
+                next_pos = events[i + 1][0]
+
+                if current_building_count > 0 and pos != next_pos:
+                    avg_height = current_height_sum // current_building_count
+                    if street and street[-1][1] == pos and street[-1][2] == avg_height:
+                        street[-1][1] = next_pos
+                    else:
+                        street.append([pos, next_pos, avg_height])
+
+        return street
 
 # --------------------------------------
 # Test Cases:

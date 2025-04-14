@@ -35,17 +35,20 @@
 # Test Case Generator Code:
 from typing import List
 
+
 class Solution:
-    def numberOfWeakCharacters(self, properties: List[List[int]]) -> int:
-        properties.sort(key=lambda x: (-x[0], x[1]))
-        ans = mx = 0
-        for _, x in properties:
-            ans += x < mx
-            mx = max(mx, x)
-        return ans
+    def numberOfWeakCharacters(self, properties: list[list[int]]) -> int:
+        properties.sort(key=lambda x: (x[0], -x[1]))
 
+        weak_count = 0
+        max_defense = 0
 
-# --------------------------------------
+        for attack, defense in reversed(properties):
+            if defense < max_defense:
+                weak_count += 1
+            max_defense = max(max_defense, defense)
+
+        return weak_count
 # Test Cases:
 solution = Solution()
 assert solution.numberOfWeakCharacters([[101, 74], [100, 82], [99, 23], [98, 100], [97, 22], [96, 4], [95, 101], [93, 90], [91, 4], [90, 74], [89, 82], [84, 12], [83, 1], [81, 4], [81, 11], [80, 4], [79, 1], [77, 22], [75, 25], [71, 10], [71, 39], [70, 21], [70, 28], [70, 90], [69, 87], [63, 23], [61, 98], [56, 10], [56, 44], [55, 51], [55, 58], [52, 71], [51, 43], [51, 67], [51, 90], [50, 77], [46, 6], [45, 69], [43, 70], [41, 5], [41, 28], [41, 45], [41, 71], [40, 45], [40, 47], [40, 80], [39, 40], [39, 87], [38, 16], [36, 28], [35, 24], [33, 57], [33, 62], [32, 36], [31, 37], [30, 22], [30, 24], [28, 56], [27, 87], [26, 46], [24, 43], [24, 47], [23, 50], [22, 16], [22, 25], [21, 56], [20, 85], [19, 7], [18, 57], [17, 69], [13, 8], [12, 65], [11, 97], [11, 98], [10, 88], [10, 91], [8, 33], [8, 41], [4, 95], [2, 43], [1, 37]]) == 77

@@ -41,16 +41,49 @@
 import random
 from typing import List
 
-class Solution:
-    def wiggleMaxLength(self, nums: List[int]) -> int:
-        up = down = 1
-        for i in range(1, len(nums)):
-            if nums[i] > nums[i - 1]:
-                up = max(up, down + 1)
-            elif nums[i] < nums[i - 1]:
-                down = max(down, up + 1)
-        return max(up, down)
 
+class Solution:
+    def wiggleMaxLength(self, nums: list[int]) -> int:
+        n = len(nums)
+
+        # Handle edge cases
+        if n <= 1:
+            return n
+
+        # up[i] represents the length of the longest wiggle subsequence ending at index i
+        # with a positive difference between the last two elements
+        # down[i] represents the length of the longest wiggle subsequence ending at index i
+        # with a negative difference between the last two elements
+        up = [0] * n
+        down = [0] * n
+
+        # Base case
+        up[0] = 1
+        down[0] = 1
+
+        for i in range(1, n):
+            if nums[i] > nums[i - 1]:
+                # If current element is greater than previous element
+                # We can add it after a sequence ending with a negative difference
+                up[i] = down[i - 1] + 1
+                # We can't add it after a sequence ending with a positive difference
+                down[i] = down[i - 1]
+            elif nums[i] < nums[i - 1]:
+                # If current element is smaller than previous element
+                # We can add it after a sequence ending with a positive difference
+                down[i] = up[i - 1] + 1
+                # We can't add it after a sequence ending with a negative difference
+                up[i] = up[i - 1]
+            else:
+                # If current element is equal to previous element
+                # We can't add it to either sequence
+                up[i] = up[i - 1]
+                down[i] = down[i - 1]
+
+        # Return the maximum length of the two sequences
+        return max(up[n - 1], down[n - 1])
+
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.wiggleMaxLength([71, 24, 67, 64, 85, 65, 39, 68, 29, 80]) == 9

@@ -37,23 +37,44 @@
 
 # --------------------------------------
 # Test Case Generator Code:
+import random
+from collections import Counter
 
 from collections import Counter
 
+
 class Solution:
     def minimumOperations(self, nums):
-        def get(i):
-            c = Counter(nums[i::2]).most_common(2)
-            if not c:
-                return [(0, 0), (0, 0)]
-            if len(c) == 1:
-                return [c[0], (0, 0)]
-            return c
+        # Split the list into even and odd indexed numbers.
+        even = nums[0::2]
+        odd = nums[1::2]
 
-        n = len(nums)
-        return min(n - (n1 + n2) for a, n1 in get(0) for b, n2 in get(1) if a != b)
+        # Count the frequency of each number in even and odd indices.
+        even_counter = Counter(even)
+        odd_counter = Counter(odd)
 
-# --------------------------------------
+        # Get the two most common numbers for both even and odd groups.
+        even_common = even_counter.most_common(2)
+        odd_common = odd_counter.most_common(2)
+
+        # If there is only one candidate in either group, add a dummy candidate with frequency 0.
+        if len(even_common) < 2:
+            even_common.append((None, 0))
+        if len(odd_common) < 2:
+            odd_common.append((None, 0))
+
+        # If the top candidates for even and odd groups differ, we can use them directly.
+        if even_common[0][0] != odd_common[0][0]:
+            changes = (len(even) - even_common[0][1]) + (len(odd) - odd_common[0][1])
+        else:
+            # If the top candidates are the same, try both alternatives by replacing one group
+            changes_option1 = (len(even) - even_common[0][1]) + (len(odd) - odd_common[1][1])
+            changes_option2 = (len(even) - even_common[1][1]) + (len(odd) - odd_common[0][1])
+            changes = min(changes_option1, changes_option2)
+
+        return changes
+
+
 # Test Cases:
 solution = Solution()
 assert solution.minimumOperations([19, 61, 82]) == 1

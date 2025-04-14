@@ -61,30 +61,55 @@
 # Test Case Generator Code:
 import random
 from collections import defaultdict
+from typing import List
 
 
 class Solution:
-    def averageHeightOfBuildings(self, buildings):
-        height = defaultdict(int)
-        cnt = defaultdict(int)
-        for s, e, h in buildings:
-            cnt[s] += 1
-            cnt[e] -= 1
-            height[s] += h
-            height[e] -= h
-        ans = []
-        i = h = n = 0
-        for j in sorted(cnt.keys()):
-            if n:
-                t = [i, j, h // n]
-                if ans and ans[-1][1] == i and ans[-1][2] == t[-1]:
-                    ans[-1][1] = j
+    def averageHeightOfBuildings(self, buildings: List[List[int]]) -> List[List[int]]:
+        # Prepare events: for each building add a start event and an end event.
+        # Each event is a tuple (coordinate, type, height)
+        # Using type 1 for addition and 0 for removal ensures that removals come first when events
+        # share the same coordinate.
+        events = []
+        for start, end, height in buildings:
+            events.append((start, 1, height))  # Building starts: add building height.
+            events.append((end, 0, height))  # Building ends: remove building height.
+
+        # Sort events by coordinate, and then by type (removals before additions at the same coordinate).
+        events.sort(key=lambda x: (x[0], x[1]))
+
+        res = []
+        cur_sum = 0  # Sum of heights of active buildings.
+        cur_count = 0  # Number of active buildings.
+        prev_x = None  # Previous x-coordinate we processed.
+        i = 0
+        n = len(events)
+
+        # Process the events in sorted order.
+        while i < n:
+            x = events[i][0]
+            # If we have advanced in x and there are active buildings, record the segment [prev_x, x)
+            if prev_x is not None and x > prev_x and cur_count > 0:
+                avg = cur_sum // cur_count  # Integer division for average as defined.
+                # Merge with the last segment if its average equals the current average and is contiguous.
+                if res and res[-1][2] == avg and res[-1][1] == prev_x:
+                    res[-1][1] = x
                 else:
-                    ans.append(t)
-            i = j
-            h += height[j]
-            n += cnt[j]
-        return ans
+                    res.append([prev_x, x, avg])
+            # Process all events at the current x coordinate.
+            while i < n and events[i][0] == x:
+                event_type, height = events[i][1], events[i][2]
+                if event_type == 0:  # Removal event: building no longer active.
+                    cur_sum -= height
+                    cur_count -= 1
+                else:  # Addition event: building becomes active.
+                    cur_sum += height
+                    cur_count += 1
+                i += 1
+            prev_x = x
+
+        return res
+
 
 # --------------------------------------
 # Test Cases:

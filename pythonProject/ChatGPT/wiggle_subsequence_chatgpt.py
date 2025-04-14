@@ -41,16 +41,30 @@
 import random
 from typing import List
 
-class Solution:
-    def wiggleMaxLength(self, nums: List[int]) -> int:
-        up = down = 1
-        for i in range(1, len(nums)):
-            if nums[i] > nums[i - 1]:
-                up = max(up, down + 1)
-            elif nums[i] < nums[i - 1]:
-                down = max(down, up + 1)
-        return max(up, down)
 
+class Solution:
+    def wiggleMaxLength(self, nums):
+        if len(nums) < 2:
+            return len(nums)
+
+        # Initialize the previous difference and the count.
+        prev_diff = 0
+        count = 1  # At least one element is always there.
+
+        for i in range(1, len(nums)):
+            diff = nums[i] - nums[i - 1]
+            # Only consider non-zero differences.
+            if diff > 0 and prev_diff <= 0:
+                count += 1
+                prev_diff = diff
+            elif diff < 0 and prev_diff >= 0:
+                count += 1
+                prev_diff = diff
+
+        return count
+
+
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.wiggleMaxLength([71, 24, 67, 64, 85, 65, 39, 68, 29, 80]) == 9

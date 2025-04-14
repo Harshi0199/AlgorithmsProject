@@ -40,38 +40,8 @@ class Solution:
                 i += 1
         return ans
 
-def generate_test_case():
-    solution = Solution()
-    
-    # Generate random numbers list nums1
-    nums1 = random.sample(range(1, 101), random.randint(2, 10))
-    
-    # Generate random numbers list nums2
-    nums2 = random.sample(range(1, 101), len(nums1))
-    
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.advantageCount(nums1, nums2)
-
-    return nums1, nums2, expected_result
-
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        nums1, nums2, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.advantageCount(nums1, nums2) == expected_result
-        print(f"assert solution.advantageCount({nums1}, {nums2}) == {expected_result}")
-        test_case_generator_results.append(f"assert solution.advantageCount({nums1}, {nums2}) == {expected_result}") # You can find that we construct the test case in the same format as the example
-    return test_case_generator_results
-solution = Solution()
-
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
-
-# --------------------------------------
 # Test Cases:
-
+solution = Solution()
 assert solution.advantageCount([12, 24, 8, 32], [13, 25, 32, 11]) == [24, 32, 8, 12]
 assert solution.advantageCount([37, 100], [64, 98]) == [100, 37]
 assert solution.advantageCount([19, 46, 74, 79], [72, 94, 68, 4]) == [79, 46, 74, 19]

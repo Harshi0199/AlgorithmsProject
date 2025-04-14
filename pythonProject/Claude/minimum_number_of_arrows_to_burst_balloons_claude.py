@@ -40,15 +40,28 @@
 import random
 from typing import List
 
-class Solution:
-    def findMinArrowShots(self, points: List[List[int]]) -> int:
-        ans, last = 0, float('-inf')
-        for a, b in sorted(points, key=lambda x: x[1]):
-            if a > last:
-                ans += 1
-                last = b
-        return ans
 
+class Solution:
+    def findMinArrowShots(self, points: list[list[int]]) -> int:
+        if not points:
+            return 0
+
+        # Sort the balloons by their end coordinates
+        points.sort(key=lambda x: x[1])
+
+        # Initialize with the first balloon's end position
+        arrows = 1
+        arrow_pos = points[0][1]
+
+        # Iterate through the rest of the balloons
+        for start, end in points[1:]:
+            # If the current balloon starts after the arrow position,
+            # we need a new arrow
+            if start > arrow_pos:
+                arrows += 1
+                arrow_pos = end
+
+        return arrows
 
 # Test Cases:
 solution = Solution()

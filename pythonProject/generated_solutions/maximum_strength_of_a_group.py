@@ -48,31 +48,6 @@ class Solution:
                 i += 1
         return ans
 
-def generate_test_case():
-    solution = Solution()
-    
-    # Generate random numbers list
-    nums = random.choices(range(-9, 10), k=random.randint(1, 13))
-    
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.maxStrength(nums)
-
-    return nums, expected_result
-
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        nums, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.maxStrength(nums) == expected_result
-        test_case_generator_results.append(f"assert solution.maxStrength({nums}) == {expected_result}") 
-    return test_case_generator_results
-
-
-if __name__ == "__main__":
-    num_tests = 100  
-    test_case_generator_results = test_generated_test_cases(num_tests)
-
 # --------------------------------------
 # Test Cases:
 solution = Solution()

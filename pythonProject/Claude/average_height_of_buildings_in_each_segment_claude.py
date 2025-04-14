@@ -61,30 +61,48 @@
 # Test Case Generator Code:
 import random
 from collections import defaultdict
+from typing import List
 
 
 class Solution:
-    def averageHeightOfBuildings(self, buildings):
-        height = defaultdict(int)
-        cnt = defaultdict(int)
-        for s, e, h in buildings:
-            cnt[s] += 1
-            cnt[e] -= 1
-            height[s] += h
-            height[e] -= h
-        ans = []
-        i = h = n = 0
-        for j in sorted(cnt.keys()):
-            if n:
-                t = [i, j, h // n]
-                if ans and ans[-1][1] == i and ans[-1][2] == t[-1]:
-                    ans[-1][1] = j
+    def averageHeightOfBuildings(self, buildings: list[list[int]]) -> list[list[int]]:
+        # Create events for all start and end points
+        events = []
+        for start, end, height in buildings:
+            events.append((start, 1, height))  # Start event
+            events.append((end, -1, height))  # End event
+
+        # Sort events by position
+        events.sort()
+
+        result = []
+        current_pos = None
+        total_height = 0
+        building_count = 0
+
+        for pos, event_type, height in events:
+            # Process the previous segment if we have a valid segment
+            if current_pos is not None and building_count > 0 and pos > current_pos:
+                avg_height = total_height // building_count
+
+                # Try to merge with the previous segment if possible
+                if result and result[-1][1] == current_pos and result[-1][2] == avg_height:
+                    result[-1][1] = pos
                 else:
-                    ans.append(t)
-            i = j
-            h += height[j]
-            n += cnt[j]
-        return ans
+                    result.append([current_pos, pos, avg_height])
+
+            # Update current position
+            current_pos = pos
+
+            # Update building count and total height
+            if event_type == 1:  # Building starts
+                total_height += height
+                building_count += 1
+            else:  # Building ends
+                total_height -= height
+                building_count -= 1
+
+        return result
 
 # --------------------------------------
 # Test Cases:

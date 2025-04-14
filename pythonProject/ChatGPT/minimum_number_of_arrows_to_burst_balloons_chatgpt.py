@@ -40,14 +40,30 @@
 import random
 from typing import List
 
+from typing import List
+
+
 class Solution:
     def findMinArrowShots(self, points: List[List[int]]) -> int:
-        ans, last = 0, float('-inf')
-        for a, b in sorted(points, key=lambda x: x[1]):
-            if a > last:
-                ans += 1
-                last = b
-        return ans
+        # If there are no balloons, no arrows are needed.
+        if not points:
+            return 0
+
+        # Sort the balloons based on their ending x-coordinate.
+        points.sort(key=lambda x: x[1])
+
+        arrows = 1  # Start with one arrow for the first balloon.
+        current_end = points[0][1]
+
+        # Iterate through each balloon.
+        for start, end in points[1:]:
+            # If the current balloon starts after the current arrow position,
+            # it is not burst by the current arrow so we need a new arrow.
+            if start > current_end:
+                arrows += 1
+                current_end = end
+
+        return arrows
 
 
 # Test Cases:
