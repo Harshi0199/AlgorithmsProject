@@ -6,70 +6,17 @@ This script compares multiple Python solutions across four folders:
        - Gemini
        - Claude
 
-For each task, the same problem is implemented in different folders. For example:
-  Task: lexicographically_smallest_string_after_substring_operation
-       - generated_solutions/lexicographically_smallest_string_after_substring_operation.py
-       - ChatGPT/lexicographically_smallest_string_after_substring_operation_chatgpt.py
-       - Gemini/lexicographically_smallest_string_after_substring_operation_gemini.py
-       - Claude/lexicographically_smallest_string_after_substring_operation_claude.py
+For each task, the same problem is implemented in different folders. For example,
+if a file named "wiggle_subsequence.py" exists in generated_solutions then the script
+expects the following files (if they exist):
+  - generated_solutions/wiggle_subsequence.py
+  - ChatGPT/wiggle_subsequence_chatgpt.py
+  - Gemini/wiggle_subsequence_gemini.py
+  - Claude/wiggle_subsequence_claude.py
 
-  Task: maximum_strength_of_a_group
-       - generated_solutions/maximum_strength_of_a_group.py
-       - ChatGPT/maximum_strength_of_a_group_chatgpt.py
-       - Gemini/maximum_strength_of_a_group_gemini.py
-       - Claude/maximum_strength_of_a_group_claude.py
-
-  Task: maximum_xor_product
-       - generated_solutions/maximum_xor_product.py
-       - ChatGPT/maximum_xor_product_chatgpt.py
-       - Gemini/maximum_xor_product_gemini.py
-       - Claude/maximum_xor_product_claude.py
-
-  Task: minimum_number_of_arrows_to_burst_balloons
-       - generated_solutions/minimum_number_of_arrows_to_burst_balloons.py
-       - ChatGPT/minimum_number_of_arrows_to_burst_balloons_chatgpt.py
-       - Gemini/minimum_number_of_arrows_to_burst_balloons_gemini.py
-       - Claude/minimum_number_of_arrows_to_burst_balloons_claude.py
-
-  Task: minimum_operations_to_make_the_array_alternating
-       - generated_solutions/minimum_operations_to_make_the_array_alternating.py
-       - ChatGPT/minimum_operations_to_make_the_array_alternating_chatgpt.py
-       - Gemini/minimum_operations_to_make_the_array_alternating_gemini.py
-       - Claude/minimum_operations_to_make_the_array_alternating_claude.py
-
-  Task: most_profit_assigning_work
-       - generated_solutions/most_profit_assigning_work.py
-       - ChatGPT/most_profit_assigning_work_chatgpt.py
-       - Gemini/most_profit_assigning_work_gemini.py
-       - Claude/most_profit_assigning_work_claude.py
-
-  Task: the_number_of_weak_characters_in_the_game
-       - generated_solutions/the_number_of_weak_characters_in_the_game.py
-       - ChatGPT/the_number_of_weak_characters_in_the_game_chatgpt.py
-       - Gemini/the_number_of_weak_characters_in_the_game_gemini.py
-       - Claude/the_number_of_weak_characters_in_the_game_claude.py
-
-  Task: smallest_subsequence_of_distinct_characters
-       - generated_solutions/smallest_subsequence_of_distinct_characters.py
-       - ChatGPT/smallest_subsequence_of_distinct_characters_chatgpt.py
-       - Gemini/smallest_subsequence_of_distinct_characters_gemini.py
-       - Claude/smallest_subsequence_of_distinct_characters_claude.py
-
-  Task: wiggle_subsequence
-       - generated_solutions/wiggle_subsequence.py
-       - ChatGPT/wiggle_subsequence_chatgpt.py
-       - Gemini/wiggle_subsequence_gemini.py
-       - Claude/wiggle_subsequence_claude.py
-
-  Task: average_height_of_buildings_in_each_segment
-       - generated_solutions/average_height_of_buildings_in_each_segment.py
-       - ChatGPT/average_height_of_buildings_in_each_segment_chatgpt.py
-       - Gemini/average_height_of_buildings_in_each_segment_gemini.py
-       - Claude/average_height_of_buildings_in_each_segment_claude.py
-
-Each file is executed concurrently with a timeout (10 seconds), and a return code of 0 is considered a Pass.
-The results are summarized via a grouped bar chart (aggregated over tasks) and an HTML report
-with a table showing each task's Pass/Fail results and execution time (in nanoseconds) for each folder.
+Each file is executed concurrently with a timeout (10 seconds) and a return code of 0 is considered a Pass.
+The execution time (in nanoseconds) is measured only for the solution code when the “--skip-tests” flag is provided.
+Results are summarized via a grouped bar chart (aggregated over tasks) and an HTML report with a table showing each task's Pass/Fail results and execution times.
 """
 
 import os
@@ -84,17 +31,46 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
+def get_tasks_from_folder():
+    """
+    Dynamically generates the tasks list from the folder structure.
+    Assumes that the base folder 'generated_solutions' contains the canonical file names,
+    and that corresponding files in other folders (ChatGPT, Gemini, Claude) follow the pattern:
+       <base_name>_<folder_lowercase>.py
+    Returns a list of dictionaries where each dictionary has:
+         "problem_name": <base_name>
+         and keys for each folder with the expected filename.
+    """
+    solution_folders = ["generated_solutions", "ChatGPT", "Gemini", "Claude"]
+    base_folder = solution_folders[0]
+    # List .py files in the base folder
+    base_files = [f for f in os.listdir(base_folder) if f.endswith(".py")]
+    tasks = []
+    for file in base_files:
+        base_name = file[:-3]  # Remove '.py'
+        task = {"problem_name": base_name}
+        for folder in solution_folders:
+            if folder == base_folder:
+                task[folder] = file
+            else:
+                # Construct file name as: <base_name>_<folder_lowercase>.py
+                task[folder] = f"{base_name}_{folder.lower()}.py"
+        tasks.append(task)
+    return tasks
+
+
 def run_script(filepath):
     """
-    Executes a Python file and returns a tuple:
+    Executes a Python file with the '--skip-tests' argument and returns a tuple:
       (filepath, return_code, exec_time_ns, stdout, stderr).
-    A return code of 0 indicates a pass; otherwise, a failure.
-    Execution time is measured in nanoseconds.
+    A return code of 0 indicates a pass; execution time is measured in nanoseconds.
+    The '--skip-tests' argument should instruct the file to run only the solution code.
     """
     start_ns = time.perf_counter_ns()
     try:
+        # Pass '--skip-tests' to run only the solution code (not the test cases)
         result = subprocess.run(
-            ["python", filepath],
+            ["python", filepath, "--skip-tests"],
             capture_output=True,
             text=True,
             timeout=10
@@ -112,91 +88,23 @@ def run_script(filepath):
 
 
 def main():
-    # List of tasks with expected file names per folder.
-    tasks = [
-        {
-            "problem_name": "lexicographically_smallest_string_after_substring_operation",
-            "generated_solutions": "lexicographically_smallest_string_after_substring_operation.py",
-            "ChatGPT": "lexicographically_smallest_string_after_substring_operation_chatgpt.py",
-            "Gemini": "lexicographically_smallest_string_after_substring_operation_gemini.py",
-            "Claude": "lexicographically_smallest_string_after_substring_operation_claude.py"
-        },
-        {
-            "problem_name": "maximum_strength_of_a_group",
-            "generated_solutions": "maximum_strength_of_a_group.py",
-            "ChatGPT": "maximum_strength_of_a_group_chatgpt.py",
-            "Gemini": "maximum_strength_of_a_group_gemini.py",
-            "Claude": "maximum_strength_of_a_group_claude.py"
-        },
-        {
-            "problem_name": "maximum_xor_product",
-            "generated_solutions": "maximum_xor_product.py",
-            "ChatGPT": "maximum_xor_product_chatgpt.py",
-            "Gemini": "maximum_xor_product_gemini.py",
-            "Claude": "maximum_xor_product_claude.py"
-        },
-        {
-            "problem_name": "minimum_number_of_arrows_to_burst_balloons",
-            "generated_solutions": "minimum_number_of_arrows_to_burst_balloons.py",
-            "ChatGPT": "minimum_number_of_arrows_to_burst_balloons_chatgpt.py",
-            "Gemini": "minimum_number_of_arrows_to_burst_balloons_gemini.py",
-            "Claude": "minimum_number_of_arrows_to_burst_balloons_claude.py"
-        },
-        {
-            "problem_name": "minimum_operations_to_make_the_array_alternating",
-            "generated_solutions": "minimum_operations_to_make_the_array_alternating.py",
-            "ChatGPT": "minimum_operations_to_make_the_array_alternating_chatgpt.py",
-            "Gemini": "minimum_operations_to_make_the_array_alternating_gemini.py",
-            "Claude": "minimum_operations_to_make_the_array_alternating_claude.py"
-        },
-        {
-            "problem_name": "most_profit_assigning_work",
-            "generated_solutions": "most_profit_assigning_work.py",
-            "ChatGPT": "most_profit_assigning_work_chatgpt.py",
-            "Gemini": "most_profit_assigning_work_gemini.py",
-            "Claude": "most_profit_assigning_work_claude.py"
-        },
-        {
-            "problem_name": "the_number_of_weak_characters_in_the_game",
-            "generated_solutions": "the_number_of_weak_characters_in_the_game.py",
-            "ChatGPT": "the_number_of_weak_characters_in_the_game_chatgpt.py",
-            "Gemini": "the_number_of_weak_characters_in_the_game_gemini.py",
-            "Claude": "the_number_of_weak_characters_in_the_game_claude.py"
-        },
-        {
-            "problem_name": "smallest_subsequence_of_distinct_characters",
-            "generated_solutions": "smallest_subsequence_of_distinct_characters.py",
-            "ChatGPT": "smallest_subsequence_of_distinct_characters_chatgpt.py",
-            "Gemini": "smallest_subsequence_of_distinct_characters_gemini.py",
-            "Claude": "smallest_subsequence_of_distinct_characters_claude.py"
-        },
-        {
-            "problem_name": "wiggle_subsequence",
-            "generated_solutions": "wiggle_subsequence.py",
-            "ChatGPT": "wiggle_subsequence_chatgpt.py",
-            "Gemini": "wiggle_subsequence_gemini.py",
-            "Claude": "wiggle_subsequence_claude.py"
-        },
-        {
-            "problem_name": "average_height_of_buildings_in_each_segment",
-            "generated_solutions": "average_height_of_buildings_in_each_segment.py",
-            "ChatGPT": "average_height_of_buildings_in_each_segment_chatgpt.py",
-            "Gemini": "average_height_of_buildings_in_each_segment_gemini.py",
-            "Claude": "average_height_of_buildings_in_each_segment_claude.py"
-        }
-    ]
+    # Dynamically build the tasks list from the folder structure.
+    tasks = get_tasks_from_folder()
+    print("Generated tasks:")
+    for t in tasks:
+        print(t)
 
     # Define the folder names in the desired order.
     folders = ["generated_solutions", "ChatGPT", "Gemini", "Claude"]
 
-    # Aggregated statistics per folder (for the bar chart).
+    # Aggregated statistics per folder for the bar chart.
     aggregate_stats = {folder: {"pass": 0, "fail": 0} for folder in folders}
 
     # Results per task for the HTML summary table.
     # Structure: { problem_name: { folder: {"pass": value, "fail": value, "time": value}, ... } }
     task_results = {}
 
-    # Create a list of futures to run all tasks concurrently.
+    # Execute all tasks concurrently.
     futures = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
         for task in tasks:
@@ -215,12 +123,7 @@ def main():
             fp, return_code, exec_time_ns, stdout, stderr = future.result()
             passed = 1 if return_code == 0 else 0
             failed = 0 if return_code == 0 else 1
-            # Save results including execution time.
-            task_results[problem_name][folder] = {
-                "pass": passed,
-                "fail": failed,
-                "time": exec_time_ns
-            }
+            task_results[problem_name][folder] = {"pass": passed, "fail": failed, "time": exec_time_ns}
             aggregate_stats[folder]["pass"] += passed
             aggregate_stats[folder]["fail"] += failed
             print(
@@ -255,13 +158,12 @@ def main():
     graph_file = "comparison_graph.png"
     plt.savefig(graph_file)
     plt.close()
-
     if os.path.exists(graph_file):
         print(f"[INFO] Graph generated and saved as: {graph_file}")
     else:
         print("[ERROR] Graph file was not generated!")
 
-    # Build HTML report with an updated summary table including execution time.
+    # Build HTML report with a summary table including execution time.
     html_file = "comparison_report.html"
     html_content = f"""<!DOCTYPE html>
 <html>
@@ -296,7 +198,6 @@ def main():
   -->
   <h2>Pass/Fail Bar Chart (Aggregated over Tasks)</h2>
   <img src="{graph_file}" alt="Pass/Fail Comparison Graph" style="max-width: 600px;">
-
   <h2>Summary Table</h2>
   <table>
     <thead>
