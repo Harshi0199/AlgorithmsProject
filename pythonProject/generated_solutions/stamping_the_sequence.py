@@ -42,35 +42,38 @@
 
 # --------------------------------------
 # Test Case Generator Code:
+
+from collections import deque
 import random
+import string
+from typing import List
 
 class Solution:
-    def movesToStamp(self, stamp: str, target: str):
-        m, n = len(stamp), len(target)
-        indeg = [m] * (n - m + 1)
-        q = deque()
-        g = [[] for _ in range(n)]
-        for i in range(n - m + 1):
-            for j, c in enumerate(stamp):
-                if target[i + j] == c:
-                    indeg[i] -= 1
-                    if indeg[i] == 0:
-                        q.append(i)
-                else:
-                    g[i + j].append(i)
-        ans = []
-        vis = [False] * n
-        while q:
-            i = q.popleft()
-            ans.append(i)
-            for j in range(m):
-                if not vis[i + j]:
-                    vis[i + j] = True
-                    for k in g[i + j]:
-                        indeg[k] -= 1
-                        if indeg[k] == 0:
-                            q.append(k)
-        return ans[::-1] if all(vis) else []
+    def movesToStamp(self, stamp: str, target: str) -> List[int]:
+        slen, tlen = len(stamp), len(target)
+        res = []
+        
+        s_covers = set()   # create permutation of cover on characters in stamp
+        for i in range(slen):
+            for j in range(slen - i):
+                s_covers.add('#' * i + stamp[i:slen-j] + '#' * j)
+		# print(s_covers)
+		
+        done = '#' * tlen
+		
+        p = tlen - slen 
+        while target != done:
+            
+            found = False
+            for i in range(p, -1, -1):
+                if target[i: i+slen] in s_covers:
+                    target = target[:i] + '#' * slen + target[i+slen:]  # add the mask to the target
+                    res.append(i)
+                    found = True
+            if not found:   # if we cannot find where to put the stamp, return empty array
+                return []
+        
+        return res[::-1]
 
 def generate_test_case():
     solution = Solution()
@@ -83,7 +86,8 @@ def generate_test_case():
     target = ''.join(random.choices(string.ascii_lowercase, k=target_length))
 
     expected_result = solution.movesToStamp(stamp, target)
-
+    print("abc")
+    print(expected_result)
     return stamp, target, expected_result
 
 def test_generated_test_cases(num_tests):
@@ -100,6 +104,7 @@ def test_generated_test_cases(num_tests):
 if __name__ == "__main__":
     num_tests = 100
     test_case_generator_results = test_generated_test_cases(num_tests)
+
 
 # --------------------------------------
 # Test Cases:

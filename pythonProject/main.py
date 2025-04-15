@@ -36,7 +36,7 @@ def group_by_difficulty(problems: list) -> dict:
     """
     groups = defaultdict(list)
     for problem in problems:
-        difficulty = problem.get("difficulty", "Unknown")
+        difficulty = problem.get("difficulty", "Hard")
         groups[difficulty].append(problem)
     return groups
 
@@ -56,7 +56,7 @@ def sample_problems(groups: dict, sample_size: int) -> list:
         ValueError: If the number of problems available for any difficulty is less than sample_size.
     """
     sampled = []
-    for diff in ['Easy', 'Medium', 'Hard']:
+    for diff in ['Hard']:
         problems = groups.get(diff, [])
         if len(problems) < sample_size:
             raise ValueError(
@@ -84,8 +84,8 @@ if __name__ == '__main__':
     # File that contains the full dataset.
     input_filename = 'dataset_with_difficulty_and_algorithm.json'
     # New JSON file where 10 easy, 10 medium, and 10 hard dynamic programming problems will be saved.
-    output_filename = 'dp_sampled_10_each.json'
-    sample_size = 10
+    output_filename = 'dp_sampled_hard.json'
+    sample_size = 3
 
     # Extract dynamic programming problems
     dp_problems = extract_dynamic_programming_problems(input_filename)
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     # Group the problems by difficulty
     groups = group_by_difficulty(dp_problems)
     print("Counts by difficulty in the dynamic programming subset:")
-    for diff in ['Easy', 'Medium', 'Hard']:
+    for diff in ['Hard']:
         print(f"{diff}: {len(groups.get(diff, []))}")
 
     try:
@@ -108,13 +108,11 @@ if __name__ == '__main__':
     save_problems(sampled_problems, output_filename)
 
     # Print the counts of problems in the new file
-    final_counts = {'Easy': 0, 'Medium': 0, 'Hard': 0}
+    final_counts = {'Hard': 0}
     for problem in sampled_problems:
-        diff = problem.get("difficulty", "Unknown")
+        diff = problem.get("difficulty", "Hard")
         if diff in final_counts:
             final_counts[diff] += 1
 
     print("\nSampled problem counts by difficulty:")
-    print(f"Easy: {final_counts['Easy']}")
-    print(f"Medium: {final_counts['Medium']}")
     print(f"Hard: {final_counts['Hard']}")

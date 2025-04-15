@@ -83,7 +83,6 @@ if __name__ == "__main__":
     num_tests = 100  # You can change this to generate more test cases
     test_case_generator_results = test_generated_test_cases(num_tests)
 
-solution=Solution()
 # --------------------------------------
 # Test Cases:
 assert solution.maxRunTime(5, [39, 3, 24, 2, 1]) == 1

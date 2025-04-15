@@ -1,70 +1,24 @@
-# Problem 2366: Minimum Replacements to Sort the Array
-# Difficulty: Hard
-# Description:
-# <p>You are given a <strong>0-indexed</strong> integer array <code>nums</code>. In one operation you can replace any element of the array with <strong>any two</strong> elements that <strong>sum</strong> to it.</p>
-# <ul>
-# 	<li>For example, consider <code>nums = [5,6,7]</code>. In one operation, we can replace <code>nums[1]</code> with <code>2</code> and <code>4</code> and convert <code>nums</code> to <code>[5,2,4,7]</code>.</li>
-# </ul>
-# <p>Return <em>the minimum number of operations to make an array that is sorted in <strong>non-decreasing</strong> order</em>.</p>
-# <p>&nbsp;</p>
-# <p><strong class="example">Example 1:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [3,9,3]
-# <strong>Output:</strong> 2
-# <strong>Explanation:</strong> Here are the steps to sort the array in non-decreasing order:
-# - From [3,9,3], replace the 9 with 3 and 6 so the array becomes [3,3,6,3]
-# - From [3,3,6,3], replace the 6 with 3 and 3 so the array becomes [3,3,3,3,3]
-# There are 2 steps to sort the array in non-decreasing order. Therefore, we return 2.
-# </pre>
-# <p><strong class="example">Example 2:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [1,2,3,4,5]
-# <strong>Output:</strong> 0
-# <strong>Explanation:</strong> The array is already in non-decreasing order. Therefore, we return 0. 
-# </pre>
-# <p>&nbsp;</p>
-# <p><strong>Constraints:</strong></p>
-# <ul>
-# 	<li><code>1 &lt;= nums.length &lt;= 10<sup>5</sup></code></li>
-# 	<li><code>1 &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
-# </ul>
-
-# --------------------------------------
-# Test Case Generator Code:
-import random
-from typing import List
-
-class Solution:
-    def minimumReplacement(self, nums: List[int]) -> int:
-        ans = 0
+class Solution(object):
+    def minimumReplacement(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: int
+        """
         n = len(nums)
-        mx = nums[-1]
+        operations = 0
+        prev = nums[-1]  # Start with the last number
+
         for i in range(n - 2, -1, -1):
-            if nums[i] <= mx:
-                mx = nums[i]
-                continue
-            k = (nums[i] + mx - 1) // mx
-            ans += k - 1
-            mx = nums[i] // k
-        return ans
+            if nums[i] <= prev:
+                prev = nums[i]
+            else:
+                # Number of parts we need to split nums[i] into
+                parts = (nums[i] + prev - 1) // prev
+                operations += parts - 1
+                prev = nums[i] // parts  # Update prev to the largest part possible for the next iteration
 
-def generate_test_case():
-    solution = Solution()
-    test_case_generator_results = []
-    for i in range(100):
-        # Generate random numbers list
-        nums = random.sample(range(1, 101), random.randint(2, 10))
-
-        # Calculate the expected result using the provided Solution class
-        expected_result = solution.minimumReplacement(nums)
-
-        test_case_generator_results.append(f"assert solution.minimumReplacement({nums}) == {expected_result}")
+        return operations
     
-    return test_case_generator_results
-
-if __name__ == "__main__":
-    test_case_generator_results = generate_test_case()
-
 solution=Solution()
 # --------------------------------------
 # Test Cases:
@@ -168,10 +122,3 @@ assert solution.minimumReplacement([11, 70, 99, 28]) == 5
 assert solution.minimumReplacement([26, 9, 67, 74, 2, 40, 61, 20, 92, 16]) == 118
 assert solution.minimumReplacement([6, 79, 30]) == 2
 assert solution.minimumReplacement([6, 23, 89, 25, 21]) == 10
-
-if __name__ == '__main__':
-    # To run the generated test cases or custom testing code, modify below.
-    # For example:
-    # num_tests = 100
-    # test_generated_test_cases(num_tests)
-    pass

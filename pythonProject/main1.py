@@ -105,6 +105,6 @@ if __name__ == '__main__':
 
 
 if __name__ == '__main__':
-    json_filename = "dp_sampled_10_each.json"  # JSON file in the current project
-    output_folder = "generated_solutions"  # Folder to store the Python files
+    json_filename = "dp_sampled_hard.json"  # JSON file in the current project
+    output_folder = "different_generated_solutions"  # Folder to store the Python files
     create_individual_solution_files(json_filename, output_folder)

@@ -1,88 +1,40 @@
-# Problem 2141: Maximum Running Time of N Computers
-# Difficulty: Hard
-# Description:
-# <p>You have <code>n</code> computers. You are given the integer <code>n</code> and a <strong>0-indexed</strong> integer array <code>batteries</code> where the <code>i<sup>th</sup></code> battery can <strong>run</strong> a computer for <code>batteries[i]</code> minutes. You are interested in running <strong>all</strong> <code>n</code> computers <strong>simultaneously</strong> using the given batteries.</p>
-# <p>Initially, you can insert <strong>at most one battery</strong> into each computer. After that and at any integer time moment, you can remove a battery from a computer and insert another battery <strong>any number of times</strong>. The inserted battery can be a totally new battery or a battery from another computer. You may assume that the removing and inserting processes take no time.</p>
-# <p>Note that the batteries cannot be recharged.</p>
-# <p>Return <em>the <strong>maximum</strong> number of minutes you can run all the </em><code>n</code><em> computers simultaneously.</em></p>
-# <p>&nbsp;</p>
-# <p><strong class="example">Example 1:</strong></p>
-# <img alt="" src="https://fastly.jsdelivr.net/gh/doocs/leetcode@main/solution/2100-2199/2141.Maximum%20Running%20Time%20of%20N%20Computers/images/example1-fit.png" style="width: 762px; height: 150px;" />
-# <pre>
-# <strong>Input:</strong> n = 2, batteries = [3,3,3]
-# <strong>Output:</strong> 4
-# <strong>Explanation:</strong> 
-# Initially, insert battery 0 into the first computer and battery 1 into the second computer.
-# After two minutes, remove battery 1 from the second computer and insert battery 2 instead. Note that battery 1 can still run for one minute.
-# At the end of the third minute, battery 0 is drained, and you need to remove it from the first computer and insert battery 1 instead.
-# By the end of the fourth minute, battery 1 is also drained, and the first computer is no longer running.
-# We can run the two computers simultaneously for at most 4 minutes, so we return 4.
-# </pre>
-# <p><strong class="example">Example 2:</strong></p>
-# <img alt="" src="https://fastly.jsdelivr.net/gh/doocs/leetcode@main/solution/2100-2199/2141.Maximum%20Running%20Time%20of%20N%20Computers/images/example2.png" style="width: 629px; height: 150px;" />
-# <pre>
-# <strong>Input:</strong> n = 2, batteries = [1,1,1,1]
-# <strong>Output:</strong> 2
-# <strong>Explanation:</strong> 
-# Initially, insert battery 0 into the first computer and battery 2 into the second computer. 
-# After one minute, battery 0 and battery 2 are drained so you need to remove them and insert battery 1 into the first computer and battery 3 into the second computer. 
-# After another minute, battery 1 and battery 3 are also drained so the first and second computers are no longer running.
-# We can run the two computers simultaneously for at most 2 minutes, so we return 2.
-# </pre>
-# <p>&nbsp;</p>
-# <p><strong>Constraints:</strong></p>
-# <ul>
-# 	<li><code>1 &lt;= n &lt;= batteries.length &lt;= 10<sup>5</sup></code></li>
-# 	<li><code>1 &lt;= batteries[i] &lt;= 10<sup>9</sup></code></li>
-# </ul>
-
-# --------------------------------------
-# Test Case Generator Code:
-import random
-from typing import List
-
 class Solution:
-    def maxRunTime(self, n: int, batteries: List[int]) -> int:
-        l, r = 0, sum(batteries)
-        while l < r:
-            mid = (l + r + 1) >> 1
-            if sum(min(x, mid) for x in batteries) >= n * mid:
-                l = mid
+    def maxRunTime(self, n: int, batteries: list[int]) -> int:
+        """
+        Calculates the maximum time all n computers can run simultaneously.
+
+        Args:
+            n: The number of computers.
+            batteries: A list of integers where batteries[i] is the minutes the ith battery can run a computer.
+
+        Returns:
+            The maximum number of minutes all n computers can run simultaneously.
+        """
+        batteries.sort()
+        total_power = sum(batteries)
+
+        # Iterate while there are more batteries than computers
+        while len(batteries) > n:
+            total_power -= batteries.pop(0)  # Remove the smallest battery
+
+        # Binary search for the maximum possible runtime
+        left, right = 0, batteries[-1]
+        ans = 0
+        while left <= right:
+            mid = (left + right) // 2
+            required_power = n * mid
+            current_power = 0
+            for battery in batteries:
+                current_power += min(battery, mid)
+            if current_power >= required_power:
+                ans = mid
+                left = mid + 1
             else:
-                r = mid - 1
-        return l
+                right = mid - 1
+        return ans
 
 
-def generate_test_case():
-    solution = Solution()
     
-    # Generate a random number of computers
-    n = random.randint(1, 11)
-    
-    # Generate a random list of batteries with length n
-    batteries = random.sample(range(1, 101), n)
-    
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.maxRunTime(n, batteries)
-
-    return n, batteries, expected_result
-
-
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        n, batteries, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.maxRunTime(n, batteries) == expected_result
-        print(f"assert solution.maxRunTime({n}, {batteries}) == {expected_result}")
-        test_case_generator_results.append(f"assert solution.maxRunTime({n}, {batteries}) == {expected_result}")
-    return test_case_generator_results
-
-
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
-
 solution=Solution()
 # --------------------------------------
 # Test Cases:
@@ -186,10 +138,5 @@ assert solution.maxRunTime(8, [31, 78, 63, 59, 41, 3, 30, 55]) == 3
 assert solution.maxRunTime(8, [42, 61, 70, 66, 57, 17, 81, 22]) == 17
 assert solution.maxRunTime(5, [99, 6, 35, 50, 95]) == 6
 assert solution.maxRunTime(4, [25, 42, 87, 40]) == 25
-
-if __name__ == '__main__':
-    # To run the generated test cases or custom testing code, modify below.
-    # For example:
-    # num_tests = 100
-    # test_generated_test_cases(num_tests)
-    pass
+    
+    

@@ -1,90 +1,51 @@
-# Problem 632: Smallest Range Covering Elements from K Lists
-# Difficulty: Hard
-# Description:
-# <p>You have <code>k</code> lists of sorted integers in <strong>non-decreasing&nbsp;order</strong>. Find the <b>smallest</b> range that includes at least one number from each of the <code>k</code> lists.</p>
-# <p>We define the range <code>[a, b]</code> is smaller than range <code>[c, d]</code> if <code>b - a &lt; d - c</code> <strong>or</strong> <code>a &lt; c</code> if <code>b - a == d - c</code>.</p>
-# <p>&nbsp;</p>
-# <p><strong class="example">Example 1:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [[4,10,15,24,26],[0,9,12,20],[5,18,22,30]]
-# <strong>Output:</strong> [20,24]
-# <strong>Explanation: </strong>
-# List 1: [4, 10, 15, 24,26], 24 is in range [20,24].
-# List 2: [0, 9, 12, 20], 20 is in range [20,24].
-# List 3: [5, 18, 22, 30], 22 is in range [20,24].
-# </pre>
-# <p><strong class="example">Example 2:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [[1,2,3],[1,2,3],[1,2,3]]
-# <strong>Output:</strong> [1,1]
-# </pre>
-# <p>&nbsp;</p>
-# <p><strong>Constraints:</strong></p>
-# <ul>
-# 	<li><code>nums.length == k</code></li>
-# 	<li><code>1 &lt;= k &lt;= 3500</code></li>
-# 	<li><code>1 &lt;= nums[i].length &lt;= 50</code></li>
-# 	<li><code>-10<sup>5</sup> &lt;= nums[i][j] &lt;= 10<sup>5</sup></code></li>
-# 	<li><code>nums[i]</code>&nbsp;is sorted in <strong>non-decreasing</strong> order.</li>
-# </ul>
-
-# --------------------------------------
-# Test Case Generator Code:
-from cmath import inf
-from collections import Counter
-import random
-
-class Solution:
+class Solution(object):
     def smallestRange(self, nums):
-        t = [(x, i) for i, v in enumerate(nums) for x in v]
-        t.sort()
-        cnt = Counter()
-        ans = [-inf, inf]
-        j = 0
-        for b, v in t:
-            cnt[v] += 1
-            while len(cnt) == len(nums):
-                a = t[j][0]
-                x = b - a - (ans[1] - ans[0])
-                if x < 0 or (x == 0 and a < ans[0]):
-                    ans = [a, b]
-                w = t[j][1]
-                cnt[w] -= 1
-                if cnt[w] == 0:
-                    cnt.pop(w)
-                j += 1
-        return ans
-
-def generate_test_case():
-    solution = Solution()
-
-    # Generate test case for nums
-    n = random.randint(1, 4)
-    nums = []
-    for _ in range(n):
-        sublist = random.sample(range(-10**5, 10**5+1), random.randint(1, 10))
-        sublist.sort()
-        nums.append(sublist)
-
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.smallestRange(nums)
-
-    return nums, expected_result
-
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        nums, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.smallestRange(nums) == expected_result
-        print(f"assert solution.smallestRange({nums}) == {expected_result}")
-        test_case_generator_results.append(f"assert solution.smallestRange({nums}) == {expected_result}")
-    return test_case_generator_results
-
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
-
+        """
+        :type nums: List[List[int]]
+        :rtype: List[int]
+        """
+        import heapq
+        
+        # Initialize min heap and find the initial maximum value
+        min_heap = []
+        current_max = float('-inf')
+        
+        # Add the first element from each list to the min heap
+        # Each element in heap is (value, list_index, element_index)
+        for i in range(len(nums)):
+            if nums[i]:  # Make sure the list is not empty
+                heapq.heappush(min_heap, (nums[i][0], i, 0))
+                current_max = max(current_max, nums[i][0])
+        
+        # Initialize the smallest range with max possible value
+        smallest_range = [float('-inf'), float('inf')]
+        smallest_range_length = float('inf')
+        
+        # Process the heap
+        while len(min_heap) == len(nums):  # Ensure we have elements from all lists
+            # Get the minimum value
+            current_min, list_idx, elem_idx = heapq.heappop(min_heap)
+            
+            # Calculate the current range length
+            current_range_length = current_max - current_min
+            
+            # Update the smallest range if needed
+            if current_range_length < smallest_range_length or (current_range_length == smallest_range_length and current_min < smallest_range[0]):
+                smallest_range = [current_min, current_max]
+                smallest_range_length = current_range_length
+            
+            # Move to the next element in the same list
+            elem_idx += 1
+            if elem_idx < len(nums[list_idx]):
+                next_val = nums[list_idx][elem_idx]
+                heapq.heappush(min_heap, (next_val, list_idx, elem_idx))
+                current_max = max(current_max, next_val)
+            else:
+                # If we've reached the end of any list, we can't form valid ranges anymore
+                break
+        
+        return smallest_range
+    
 solution=Solution()
 # --------------------------------------
 # Test Cases:
@@ -188,10 +149,3 @@ assert solution.smallestRange([[-73431, -45338, -35135, -34140, 555, 3367, 39893
 assert solution.smallestRange([[-94551, 64440, 70911, 76733, 88631], [-81838, -31811, -18355, 7503, 15302, 20485, 53856, 54720, 64867, 70578]]) == [70578, 70911]
 assert solution.smallestRange([[-98293, -86569, -71805, -71416, -52009, -15077, -14827, 1941, 50040, 71960], [-41554, -40378, -29910, -29279, -19191, 24475, 39479, 58260, 72461], [-86509, -57879, -55788, -25283, -12278, 6987, 41726, 51501, 97973, 98458], [-58104, 72909]]) == [-58104, -41554]
 assert solution.smallestRange([[-22070], [49339]]) == [-22070, 49339]
-
-if __name__ == '__main__':
-    # To run the generated test cases or custom testing code, modify below.
-    # For example:
-    # num_tests = 100
-    # test_generated_test_cases(num_tests)
-    pass

@@ -1,82 +1,74 @@
-# Problem 410: Split Array Largest Sum
-# Difficulty: Hard
-# Description:
-# <p>Given an integer array <code>nums</code> and an integer <code>k</code>, split <code>nums</code> into <code>k</code> non-empty subarrays such that the largest sum of any subarray is <strong>minimized</strong>.</p>
-# <p>Return <em>the minimized largest sum of the split</em>.</p>
-# <p>A <strong>subarray</strong> is a contiguous part of the array.</p>
-# <p>&nbsp;</p>
-# <p><strong class="example">Example 1:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [7,2,5,10,8], k = 2
-# <strong>Output:</strong> 18
-# <strong>Explanation:</strong> There are four ways to split nums into two subarrays.
-# The best way is to split it into [7,2,5] and [10,8], where the largest sum among the two subarrays is only 18.
-# </pre>
-# <p><strong class="example">Example 2:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [1,2,3,4,5], k = 2
-# <strong>Output:</strong> 9
-# <strong>Explanation:</strong> There are four ways to split nums into two subarrays.
-# The best way is to split it into [1,2,3] and [4,5], where the largest sum among the two subarrays is only 9.
-# </pre>
-# <p>&nbsp;</p>
-# <p><strong>Constraints:</strong></p>
-# <ul>
-# 	<li><code>1 &lt;= nums.length &lt;= 1000</code></li>
-# 	<li><code>0 &lt;= nums[i] &lt;= 10<sup>6</sup></code></li>
-# 	<li><code>1 &lt;= k &lt;= min(50, nums.length)</code></li>
-# </ul>
+import math
 
-# --------------------------------------
-# Test Case Generator Code:
-from bisect import bisect_left
-import random
-
-class Solution:
+class Solution(object):
     def splitArray(self, nums, k):
-        def check(mx):
-            s, cnt = float('inf'), 0
-            for x in nums:
-                s += x
-                if s > mx:
-                    s = x
-                    cnt += 1
-            return cnt <= k
+        """
+        Splits the array nums into k subarrays such that the largest sum of any subarray is minimized.
 
-        left, right = max(nums), sum(nums)
-        return left + bisect_left(range(left, right + 1), True, key=check)
+        :type nums: List[int]
+        :type k: int
+        :rtype: int
+        """
 
+        # Helper function to check if it's possible to split 'nums' into 'k' or fewer
+        # subarrays such that no subarray sum exceeds 'max_sum_allowed'.
+        def can_split(max_sum_allowed):
+            subarrays_needed = 1  # Start with the first subarray
+            current_sum = 0
+            for num in nums:
+                # If a single element is larger than max_sum_allowed, it's impossible
+                # Note: This check is implicitly handled by the logic below if
+                # the binary search lower bound is set correctly (max(nums)).
+                # if num > max_sum_allowed:
+                #     return False
 
-def generate_test_case():
-    solution = Solution()
+                # Try adding the current number to the current subarray
+                if current_sum + num <= max_sum_allowed:
+                    current_sum += num
+                else:
+                    # Cannot add num to the current subarray, start a new one
+                    subarrays_needed += 1
+                    current_sum = num # The new subarray starts with this number
 
-    # Generate random numbers list
-    nums = random.sample(range(1, 1001), random.randint(1, 10))
+                    # If we already need more subarrays than allowed, we can stop early
+                    if subarrays_needed > k:
+                        return False
+            
+            # Check if the number of subarrays required is within the limit k
+            return True # Equivalent to: return subarrays_needed <= k
 
-    # Generate a random value of k
-    k = random.randint(1, min(50, len(nums)))
+        # --- Binary Search on the Answer ---
 
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.splitArray(nums, k)
+        # The minimum possible value for the "largest sum" is the largest element
+        # in the array (when each element might be its own subarray or part of one).
+        low = max(nums)
 
-    return nums, k, expected_result
+        # The maximum possible value for the "largest sum" is the sum of all elements
+        # (when k=1, i.e., the entire array is one subarray).
+        high = sum(nums)
 
+        # Keep track of the minimum largest sum found so far that satisfies the condition
+        min_largest_sum = high
 
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        nums, k, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.splitArray(nums, k) == expected_result
-        print(f"assert solution.splitArray({nums}, {k}) == {expected_result}")
-        test_case_generator_results.append(
-            f"assert solution.splitArray({nums}, {k}) == {expected_result}")  # You can find that we construct the test case in the same format as the example
-    return test_case_generator_results
+        while low <= high:
+            # Calculate the potential maximum sum allowed for any subarray
+            mid = low + (high - low) // 2
 
+            # Check if we can split the array into k or fewer subarrays
+            # with the current 'mid' as the maximum allowed sum for any subarray.
+            if can_split(mid):
+                # If we can split with 'mid' as the max sum, it means 'mid' is a
+                # potential answer. We store it and try to find an even smaller
+                # possible max sum. So, we search in the lower half.
+                min_largest_sum = mid
+                high = mid - 1
+            else:
+                # If we cannot split with 'mid' as the max sum (meaning we needed
+                # more than 'k' subarrays), then 'mid' is too small. We need to
+                # allow larger subarray sums. So, we search in the upper half.
+                low = mid + 1
 
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
+        return min_largest_sum
 
 solution=Solution()
 # --------------------------------------
@@ -181,10 +173,3 @@ assert solution.splitArray([418, 588], 1) == 1006
 assert solution.splitArray([319, 819, 350, 834, 782, 242, 349, 637, 956, 519], 2) == 3104
 assert solution.splitArray([511, 902], 2) == 902
 assert solution.splitArray([441, 439, 67, 584, 163, 522], 3) == 880
-
-if __name__ == '__main__':
-    # To run the generated test cases or custom testing code, modify below.
-    # For example:
-    # num_tests = 100
-    # test_generated_test_cases(num_tests)
-    pass

@@ -1,103 +1,45 @@
-# Problem 1713: Minimum Operations to Make a Subsequence
-# Difficulty: Hard
-# Description:
-# <p>You are given an array <code>target</code> that consists of <strong>distinct</strong> integers and another integer array <code>arr</code> that <strong>can</strong> have duplicates.</p>
-# <p>In one operation, you can insert any integer at any position in <code>arr</code>. For example, if <code>arr = [1,4,1,2]</code>, you can add <code>3</code> in the middle and make it <code>[1,4,<u>3</u>,1,2]</code>. Note that you can insert the integer at the very beginning or end of the array.</p>
-# <p>Return <em>the <strong>minimum</strong> number of operations needed to make </em><code>target</code><em> a <strong>subsequence</strong> of </em><code>arr</code><em>.</em></p>
-# <p>A <strong>subsequence</strong> of an array is a new array generated from the original array by deleting some elements (possibly none) without changing the remaining elements&#39; relative order. For example, <code>[2,7,4]</code> is a subsequence of <code>[4,<u>2</u>,3,<u>7</u>,2,1,<u>4</u>]</code> (the underlined elements), while <code>[2,4,2]</code> is not.</p>
-# <p>&nbsp;</p>
-# <p><strong class="example">Example 1:</strong></p>
-# <pre>
-# <strong>Input:</strong> target = [5,1,3], <code>arr</code> = [9,4,2,3,4]
-# <strong>Output:</strong> 2
-# <strong>Explanation:</strong> You can add 5 and 1 in such a way that makes <code>arr</code> = [<u>5</u>,9,4,<u>1</u>,2,3,4], then target will be a subsequence of <code>arr</code>.
-# </pre>
-# <p><strong class="example">Example 2:</strong></p>
-# <pre>
-# <strong>Input:</strong> target = [6,4,8,1,3,2], <code>arr</code> = [4,7,6,2,3,8,6,1]
-# <strong>Output:</strong> 3
-# </pre>
-# <p>&nbsp;</p>
-# <p><strong>Constraints:</strong></p>
-# <ul>
-# 	<li><code>1 &lt;= target.length, arr.length &lt;= 10<sup>5</sup></code></li>
-# 	<li><code>1 &lt;= target[i], arr[i] &lt;= 10<sup>9</sup></code></li>
-# 	<li><code>target</code> contains no duplicates.</li>
-# </ul>
-
-# --------------------------------------
-# Test Case Generator Code:
-import random
-from typing import List
-
-class BinaryIndexedTree:
-    def __init__(self, n):
-        self.n = n
-        self.c = [0] * (n + 1)
-
-    @staticmethod
-    def lowbit(x):
-        return x & -x
-
-    def update(self, x, val):
-        while x <= self.n:
-            self.c[x] = max(self.c[x], val)
-            x += BinaryIndexedTree.lowbit(x)
-
-    def query(self, x):
-        s = 0
-        while x:
-            s = max(s, self.c[x])
-            x -= BinaryIndexedTree.lowbit(x)
-        return s
-
-
-class Solution:
-    def minOperations(self, target: List[int], arr: List[int]) -> int:
-        d = {v: i for i, v in enumerate(target)}
-        nums = [d[v] for v in arr if v in d]
-        return len(target) - self.lengthOfLIS(nums)
-
-    def lengthOfLIS(self, nums):
-        s = sorted(set(nums))
-        m = {v: i for i, v in enumerate(s, 1)}
-        tree = BinaryIndexedTree(len(m))
-        ans = 0
-        for v in nums:
-            x = m[v]
-            t = tree.query(x - 1) + 1
-            ans = max(ans, t)
-            tree.update(x, t)
-        return ans
-
-def generate_test_case():
-    solution = Solution()
-
-    # Generate target list
-    target = random.sample(range(1, 101), random.randint(2, 10))
-
-    # Generate arr list
-    arr = random.choices(target + random.sample(range(1, 101), random.randint(1, 10)), k=random.randint(1, 20))
-
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.minOperations(target, arr)
-
-    return target, arr, expected_result
-
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        target, arr, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.minOperations(target, arr) == expected_result
-        print(f"assert solution.minOperations({target}, {arr}) == {expected_result}")
-        test_case_generator_results.append(f"assert solution.minOperations({target}, {arr}) == {expected_result}") 
-    return test_case_generator_results
-
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
-
+class Solution(object):
+    def minOperations(self, target, arr):
+        """
+        :type target: List[int]
+        :type arr: List[int]
+        :rtype: int
+        """
+        # Create a mapping from target values to their indices
+        target_index = {val: idx for idx, val in enumerate(target)}
+        
+        # Convert arr to indices in target (only for values that appear in target)
+        indices = []
+        for num in arr:
+            if num in target_index:
+                indices.append(target_index[num])
+        
+        # Find the length of the longest increasing subsequence in indices
+        if not indices:
+            return len(target)
+        
+        # Find longest increasing subsequence using binary search
+        lis = []
+        for idx in indices:
+            # Binary search to find the position to insert idx
+            left, right = 0, len(lis)
+            while left < right:
+                mid = (left + right) // 2
+                if lis[mid] < idx:
+                    left = mid + 1
+                else:
+                    right = mid
+            
+            # If idx is larger than all elements in lis, append it
+            if left == len(lis):
+                lis.append(idx)
+            # Otherwise, replace the first element in lis that is >= idx
+            else:
+                lis[left] = idx
+        
+        # Return the number of elements we need to insert
+        return len(target) - len(lis)
+    
 solution=Solution()
 # --------------------------------------
 # Test Cases:
@@ -202,9 +144,3 @@ assert solution.minOperations([60, 6, 95, 42, 77, 44, 48, 45, 78], [42, 78, 77, 
 assert solution.minOperations([96, 31, 18, 51, 20, 58], [20, 69, 51, 11, 30, 18, 18, 31, 51, 69, 96, 50, 38, 38]) == 4
 assert solution.minOperations([47, 23, 79, 33, 44, 75, 94, 5, 14], [44, 14, 63, 75, 5, 47, 14, 44, 47, 14, 63, 63, 79, 23, 5, 47, 44, 79, 33, 75]) == 4
 
-if __name__ == '__main__':
-    # To run the generated test cases or custom testing code, modify below.
-    # For example:
-    # num_tests = 100
-    # test_generated_test_cases(num_tests)
-    pass

@@ -1,102 +1,69 @@
-# Problem 1713: Minimum Operations to Make a Subsequence
-# Difficulty: Hard
-# Description:
-# <p>You are given an array <code>target</code> that consists of <strong>distinct</strong> integers and another integer array <code>arr</code> that <strong>can</strong> have duplicates.</p>
-# <p>In one operation, you can insert any integer at any position in <code>arr</code>. For example, if <code>arr = [1,4,1,2]</code>, you can add <code>3</code> in the middle and make it <code>[1,4,<u>3</u>,1,2]</code>. Note that you can insert the integer at the very beginning or end of the array.</p>
-# <p>Return <em>the <strong>minimum</strong> number of operations needed to make </em><code>target</code><em> a <strong>subsequence</strong> of </em><code>arr</code><em>.</em></p>
-# <p>A <strong>subsequence</strong> of an array is a new array generated from the original array by deleting some elements (possibly none) without changing the remaining elements&#39; relative order. For example, <code>[2,7,4]</code> is a subsequence of <code>[4,<u>2</u>,3,<u>7</u>,2,1,<u>4</u>]</code> (the underlined elements), while <code>[2,4,2]</code> is not.</p>
-# <p>&nbsp;</p>
-# <p><strong class="example">Example 1:</strong></p>
-# <pre>
-# <strong>Input:</strong> target = [5,1,3], <code>arr</code> = [9,4,2,3,4]
-# <strong>Output:</strong> 2
-# <strong>Explanation:</strong> You can add 5 and 1 in such a way that makes <code>arr</code> = [<u>5</u>,9,4,<u>1</u>,2,3,4], then target will be a subsequence of <code>arr</code>.
-# </pre>
-# <p><strong class="example">Example 2:</strong></p>
-# <pre>
-# <strong>Input:</strong> target = [6,4,8,1,3,2], <code>arr</code> = [4,7,6,2,3,8,6,1]
-# <strong>Output:</strong> 3
-# </pre>
-# <p>&nbsp;</p>
-# <p><strong>Constraints:</strong></p>
-# <ul>
-# 	<li><code>1 &lt;= target.length, arr.length &lt;= 10<sup>5</sup></code></li>
-# 	<li><code>1 &lt;= target[i], arr[i] &lt;= 10<sup>9</sup></code></li>
-# 	<li><code>target</code> contains no duplicates.</li>
-# </ul>
+import bisect
 
-# --------------------------------------
-# Test Case Generator Code:
-import random
-from typing import List
+class Solution(object):
+    def minOperations(self, target, arr):
+        """
+        :type target: List[int]
+        :type arr: List[int]
+        :rtype: int
+        """
+        
+        # --- Step 1: Create a mapping from target values to their indices ---
+        # This allows us to quickly check if an element from arr is in target
+        # and get its relative position within target.
+        # Since target has distinct elements, this mapping is unique.
+        target_map = {val: i for i, val in enumerate(target)}
+        
+        # --- Step 2: Transform arr into a list of indices ---
+        # Create a new list containing only the indices (from target_map) 
+        # of elements in arr that are also present in target.
+        # This new list represents the sequence of target elements found in arr,
+        # preserving their relative order as they appear in arr.
+        indices_in_arr = []
+        for x in arr:
+            if x in target_map:
+                indices_in_arr.append(target_map[x])
+                
+        # If no elements from target are found in arr, we need to insert all target elements.
+        if not indices_in_arr:
+            return len(target)
 
-class BinaryIndexedTree:
-    def __init__(self, n):
-        self.n = n
-        self.c = [0] * (n + 1)
+        # --- Step 3: Find the Longest Increasing Subsequence (LIS) of the indices ---
+        # The problem now reduces to finding the longest common subsequence between
+        # target and arr, which corresponds to finding the Longest Increasing 
+        # Subsequence (LIS) of the indices derived from arr.
+        # Why? Because an increasing subsequence of indices means we found elements 
+        # from target within arr in the correct relative order. The length of the
+        # LIS tells us the maximum number of elements from target that we can keep
+        # from arr without needing to insert them.
+        
+        # We use the efficient O(N log N) algorithm for LIS using patience sorting
+        # and binary search (bisect_left).
+        tails = [] # Stores the smallest tail of all increasing subsequences of length i+1 at tails[i]
+        
+        for num in indices_in_arr:
+            # Find the first index 'idx' in 'tails' where tails[idx] >= num
+            idx = bisect.bisect_left(tails, num)
+            
+            if idx == len(tails):
+                # If num is greater than all elements in tails, it extends the longest subsequence.
+                tails.append(num)
+            else:
+                # If num is not greater than all elements, it means we found a potentially
+                # smaller ending element for an increasing subsequence of length idx + 1.
+                # Replace tails[idx] with num. This maintains the property that tails[i]
+                # is the smallest ending element of an increasing subsequence of length i + 1.
+                tails[idx] = num
+                
+        # The length of the 'tails' list at the end is the length of the LIS.
+        lis_length = len(tails)
+        
+        # --- Step 4: Calculate the minimum operations ---
+        # The minimum number of operations (insertions) needed is the total number
+        # of elements in target minus the length of the longest subsequence we found
+        # that already exists in arr in the correct order (LIS length).
+        return len(target) - lis_length
 
-    @staticmethod
-    def lowbit(x):
-        return x & -x
-
-    def update(self, x, val):
-        while x <= self.n:
-            self.c[x] = max(self.c[x], val)
-            x += BinaryIndexedTree.lowbit(x)
-
-    def query(self, x):
-        s = 0
-        while x:
-            s = max(s, self.c[x])
-            x -= BinaryIndexedTree.lowbit(x)
-        return s
-
-
-class Solution:
-    def minOperations(self, target: List[int], arr: List[int]) -> int:
-        d = {v: i for i, v in enumerate(target)}
-        nums = [d[v] for v in arr if v in d]
-        return len(target) - self.lengthOfLIS(nums)
-
-    def lengthOfLIS(self, nums):
-        s = sorted(set(nums))
-        m = {v: i for i, v in enumerate(s, 1)}
-        tree = BinaryIndexedTree(len(m))
-        ans = 0
-        for v in nums:
-            x = m[v]
-            t = tree.query(x - 1) + 1
-            ans = max(ans, t)
-            tree.update(x, t)
-        return ans
-
-def generate_test_case():
-    solution = Solution()
-
-    # Generate target list
-    target = random.sample(range(1, 101), random.randint(2, 10))
-
-    # Generate arr list
-    arr = random.choices(target + random.sample(range(1, 101), random.randint(1, 10)), k=random.randint(1, 20))
-
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.minOperations(target, arr)
-
-    return target, arr, expected_result
-
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        target, arr, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.minOperations(target, arr) == expected_result
-        print(f"assert solution.minOperations({target}, {arr}) == {expected_result}")
-        test_case_generator_results.append(f"assert solution.minOperations({target}, {arr}) == {expected_result}") 
-    return test_case_generator_results
-
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
 
 solution=Solution()
 # --------------------------------------
@@ -202,9 +169,3 @@ assert solution.minOperations([60, 6, 95, 42, 77, 44, 48, 45, 78], [42, 78, 77, 
 assert solution.minOperations([96, 31, 18, 51, 20, 58], [20, 69, 51, 11, 30, 18, 18, 31, 51, 69, 96, 50, 38, 38]) == 4
 assert solution.minOperations([47, 23, 79, 33, 44, 75, 94, 5, 14], [44, 14, 63, 75, 5, 47, 14, 44, 47, 14, 63, 63, 79, 23, 5, 47, 44, 79, 33, 75]) == 4
 
-if __name__ == '__main__':
-    # To run the generated test cases or custom testing code, modify below.
-    # For example:
-    # num_tests = 100
-    # test_generated_test_cases(num_tests)
-    pass

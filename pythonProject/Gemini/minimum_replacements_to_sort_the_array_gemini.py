@@ -1,70 +1,69 @@
-# Problem 2366: Minimum Replacements to Sort the Array
-# Difficulty: Hard
-# Description:
-# <p>You are given a <strong>0-indexed</strong> integer array <code>nums</code>. In one operation you can replace any element of the array with <strong>any two</strong> elements that <strong>sum</strong> to it.</p>
-# <ul>
-# 	<li>For example, consider <code>nums = [5,6,7]</code>. In one operation, we can replace <code>nums[1]</code> with <code>2</code> and <code>4</code> and convert <code>nums</code> to <code>[5,2,4,7]</code>.</li>
-# </ul>
-# <p>Return <em>the minimum number of operations to make an array that is sorted in <strong>non-decreasing</strong> order</em>.</p>
-# <p>&nbsp;</p>
-# <p><strong class="example">Example 1:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [3,9,3]
-# <strong>Output:</strong> 2
-# <strong>Explanation:</strong> Here are the steps to sort the array in non-decreasing order:
-# - From [3,9,3], replace the 9 with 3 and 6 so the array becomes [3,3,6,3]
-# - From [3,3,6,3], replace the 6 with 3 and 3 so the array becomes [3,3,3,3,3]
-# There are 2 steps to sort the array in non-decreasing order. Therefore, we return 2.
-# </pre>
-# <p><strong class="example">Example 2:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [1,2,3,4,5]
-# <strong>Output:</strong> 0
-# <strong>Explanation:</strong> The array is already in non-decreasing order. Therefore, we return 0. 
-# </pre>
-# <p>&nbsp;</p>
-# <p><strong>Constraints:</strong></p>
-# <ul>
-# 	<li><code>1 &lt;= nums.length &lt;= 10<sup>5</sup></code></li>
-# 	<li><code>1 &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
-# </ul>
+import math
 
-# --------------------------------------
-# Test Case Generator Code:
-import random
-from typing import List
-
-class Solution:
-    def minimumReplacement(self, nums: List[int]) -> int:
-        ans = 0
+class Solution(object):
+    def minimumReplacement(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: int
+        """
         n = len(nums)
-        mx = nums[-1]
+        # If the array has 0 or 1 element, it's already sorted non-decreasingly.
+        if n <= 1:
+            return 0
+
+        operations = 0
+        # Initialize the 'bound' with the value of the last element.
+        # This 'bound' represents the maximum allowed value for the element
+        # immediately to its left to maintain the non-decreasing order.
+        bound = nums[n - 1]
+
+        # Iterate through the array from right to left, starting from the
+        # second-to-last element (index n-2) down to the first element (index 0).
         for i in range(n - 2, -1, -1):
-            if nums[i] <= mx:
-                mx = nums[i]
-                continue
-            k = (nums[i] + mx - 1) // mx
-            ans += k - 1
-            mx = nums[i] // k
-        return ans
+            current = nums[i]
 
-def generate_test_case():
-    solution = Solution()
-    test_case_generator_results = []
-    for i in range(100):
-        # Generate random numbers list
-        nums = random.sample(range(1, 101), random.randint(2, 10))
-
-        # Calculate the expected result using the provided Solution class
-        expected_result = solution.minimumReplacement(nums)
-
-        test_case_generator_results.append(f"assert solution.minimumReplacement({nums}) == {expected_result}")
+            # Case 1: The current element is already less than or equal to the bound.
+            # This element satisfies the non-decreasing condition with respect to
+            # the elements to its right (or the parts they were broken into).
+            # We update the bound to the current element's value because the element
+            # further to the left (at index i-1) must now be less than or equal
+            # to 'current'.
+            if current <= bound:
+                bound = current
+            # Case 2: The current element is greater than the bound.
+            # We must replace 'current' with two or more smaller elements
+            # such that all these new elements are less than or equal to 'bound'.
+            else:
+                # Calculate the minimum number of elements ('num_elements') needed
+                # to replace 'current' such that each new element is <= 'bound'.
+                # To minimize operations, we need the minimum number of pieces.
+                # If 'current' is split into 'k' pieces (p1, ..., pk) where each pi <= bound,
+                # then current = p1 + ... + pk <= k * bound.
+                # So, k >= current / bound. The minimum integer k is ceil(current / bound).
+                # We can calculate this using integer division:
+                num_elements = (current + bound - 1) // bound 
+                
+                # Replacing one element with 'num_elements' requires 'num_elements - 1' operations.
+                # Add this to the total count of operations.
+                operations += num_elements - 1
+                
+                # After splitting 'current' into 'num_elements' parts (p1, ..., p_k)
+                # such that p1 <= p2 <= ... <= p_k <= bound, the non-decreasing order
+                # requires that the element to the left (at index i-1) must be
+                # less than or equal to the first (leftmost) piece, p1.
+                # To allow the maximum possible values for elements to the left (making it
+                # easier to satisfy the condition for them without further splits),
+                # we should determine the value of p1 when 'current' is split into
+                # 'num_elements' pieces as evenly as possible while respecting the bound.
+                # When 'current' is divided by 'num_elements', the quotient gives the base value
+                # for the pieces, and the remainder distributes '+1' among some pieces.
+                # The smallest piece value (p1) in this optimal split is floor(current / num_elements).
+                # This smallest piece value becomes the new upper bound for the element at index i-1.
+                bound = current // num_elements
+                
+        # Return the total number of operations accumulated.
+        return operations
     
-    return test_case_generator_results
-
-if __name__ == "__main__":
-    test_case_generator_results = generate_test_case()
-
 solution=Solution()
 # --------------------------------------
 # Test Cases:
@@ -169,9 +168,4 @@ assert solution.minimumReplacement([26, 9, 67, 74, 2, 40, 61, 20, 92, 16]) == 11
 assert solution.minimumReplacement([6, 79, 30]) == 2
 assert solution.minimumReplacement([6, 23, 89, 25, 21]) == 10
 
-if __name__ == '__main__':
-    # To run the generated test cases or custom testing code, modify below.
-    # For example:
-    # num_tests = 100
-    # test_generated_test_cases(num_tests)
-    pass
+

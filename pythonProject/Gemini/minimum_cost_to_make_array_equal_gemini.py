@@ -1,90 +1,42 @@
-# Problem 2448: Minimum Cost to Make Array Equal
-# Difficulty: Hard
-# Description:
-# <p>You are given two <strong>0-indexed</strong> arrays <code>nums</code> and <code>cost</code> consisting each of <code>n</code> <strong>positive</strong> integers.</p>
-# <p>You can do the following operation <strong>any</strong> number of times:</p>
-# <ul>
-# 	<li>Increase or decrease <strong>any</strong> element of the array <code>nums</code> by <code>1</code>.</li>
-# </ul>
-# <p>The cost of doing one operation on the <code>i<sup>th</sup></code> element is <code>cost[i]</code>.</p>
-# <p>Return <em>the <strong>minimum</strong> total cost such that all the elements of the array </em><code>nums</code><em> become <strong>equal</strong></em>.</p>
-# <p>&nbsp;</p>
-# <p><strong class="example">Example 1:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [1,3,5,2], cost = [2,3,1,14]
-# <strong>Output:</strong> 8
-# <strong>Explanation:</strong> We can make all the elements equal to 2 in the following way:
-# - Increase the 0<sup>th</sup> element one time. The cost is 2.
-# - Decrease the 1<sup><span style="font-size: 10.8333px;">st</span></sup> element one time. The cost is 3.
-# - Decrease the 2<sup>nd</sup> element three times. The cost is 1 + 1 + 1 = 3.
-# The total cost is 2 + 3 + 3 = 8.
-# It can be shown that we cannot make the array equal with a smaller cost.
-# </pre>
-# <p><strong class="example">Example 2:</strong></p>
-# <pre>
-# <strong>Input:</strong> nums = [2,2,2,2,2], cost = [4,2,8,1,3]
-# <strong>Output:</strong> 0
-# <strong>Explanation:</strong> All the elements are already equal, so no operations are needed.
-# </pre>
-# <p>&nbsp;</p>
-# <p><strong>Constraints:</strong></p>
-# <ul>
-# 	<li><code>n == nums.length == cost.length</code></li>
-# 	<li><code>1 &lt;= n &lt;= 10<sup>5</sup></code></li>
-# 	<li><code>1 &lt;= nums[i], cost[i] &lt;= 10<sup>6</sup></code></li>
-# 	<li>Test cases are generated in a way that the output doesn&#39;t exceed&nbsp;2<sup>53</sup>-1</li>
-# </ul>
-
-# --------------------------------------
-# Test Case Generator Code:
-import random
-
-class Solution:
+class Solution(object):
     def minCost(self, nums, cost):
-        arr = sorted(zip(nums, cost))
-        n = len(arr)
-        f = [0] * (n + 1)
-        g = [0] * (n + 1)
-        for i in range(1, n + 1):
-            a, b = arr[i - 1]
-            f[i] = f[i - 1] + a * b
-            g[i] = g[i - 1] + b
-        ans = float('inf')
-        for i in range(1, n + 1):
-            a = arr[i - 1][0]
-            l = a * g[i - 1] - f[i - 1]
-            r = f[n] - f[i] - a * (g[n] - g[i])
-            ans = min(ans, l + r)
-        return ans
+        """
+        :type nums: List[int]
+        :type cost: List[int]
+        :rtype: int
+        """
+        n = len(nums)
+        nums_cost = sorted(zip(nums, cost))
+        nums_sorted = [nc[0] for nc in nums_cost]
+        cost_sorted = [nc[1] for nc in nums_cost]
 
-def generate_test_case():
-    solution = Solution()
+        prefix_cost = [0] * n
+        prefix_cost[0] = cost_sorted[0]
+        for i in range(1, n):
+            prefix_cost[i] = prefix_cost[i - 1] + cost_sorted[i]
+
+        def calculate_cost(target):
+            total_cost = 0
+            for i in range(n):
+                total_cost += abs(nums_sorted[i] - target) * cost_sorted[i]
+            return total_cost
+
+        left, right = min(nums), max(nums)
+        min_total_cost = float('inf')
+
+        while left <= right:
+            mid1 = left + (right - left) // 3
+            mid2 = right - (right - left) // 3
+            cost1 = calculate_cost(mid1)
+            cost2 = calculate_cost(mid2)
+            min_total_cost = min(min_total_cost, cost1, cost2)
+            if cost1 < cost2:
+                right = mid2 - 1
+            else:
+                left = mid1 + 1
+
+        return min_total_cost
     
-    # Generate random numbers list
-    nums = [random.randint(1, 100) for _ in range(random.randint(1, 10))]
-    
-    # Generate random cost list
-    cost = [random.randint(1, 100) for _ in range(len(nums))]
-
-    # Calculate the expected result using the provided Solution class
-    expected_result = solution.minCost(nums, cost)
-
-    return nums, cost, expected_result
-
-def test_generated_test_cases(num_tests):
-    test_case_generator_results = []
-    for i in range(num_tests):
-        nums, cost, expected_result = generate_test_case()
-        solution = Solution()
-        assert solution.minCost(nums, cost) == expected_result
-        print(f"assert solution.minCost({nums}, {cost}) == {expected_result}")
-        test_case_generator_results.append("assert solution.minCost({}, {}) == {}".format(nums, cost, expected_result))
-    return test_case_generator_results
-
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator_results = test_generated_test_cases(num_tests)
-
 solution=Solution()
 # --------------------------------------
 # Test Cases:
@@ -188,10 +140,3 @@ assert solution.minCost([26, 38, 19, 39], [47, 96, 89, 4]) == 1827
 assert solution.minCost([13, 11, 78, 79, 78], [10, 73, 95, 74, 46]) == 5615
 assert solution.minCost([48, 54, 43, 88, 95], [27, 16, 63, 45, 20]) == 3151
 assert solution.minCost([95, 95, 54], [11, 84, 75]) == 3075
-
-if __name__ == '__main__':
-    # To run the generated test cases or custom testing code, modify below.
-    # For example:
-    # num_tests = 100
-    # test_generated_test_cases(num_tests)
-    pass

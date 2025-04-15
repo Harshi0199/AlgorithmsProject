@@ -1,128 +1,96 @@
-# Problem 2234: Maximum Total Beauty of the Gardens
-# Difficulty: Hard
-# Description:
-# <p>Alice is a caretaker of <code>n</code> gardens and she wants to plant flowers to maximize the total beauty of all her gardens.</p>
-# <p>You are given a <strong>0-indexed</strong> integer array <code>flowers</code> of size <code>n</code>, where <code>flowers[i]</code> is the number of flowers already planted in the <code>i<sup>th</sup></code> garden. Flowers that are already planted <strong>cannot</strong> be removed. You are then given another integer <code>newFlowers</code>, which is the <strong>maximum</strong> number of flowers that Alice can additionally plant. You are also given the integers <code>target</code>, <code>full</code>, and <code>partial</code>.</p>
-# <p>A garden is considered <strong>complete</strong> if it has <strong>at least</strong> <code>target</code> flowers. The <strong>total beauty</strong> of the gardens is then determined as the <strong>sum</strong> of the following:</p>
-# <ul>
-# 	<li>The number of <strong>complete</strong> gardens multiplied by <code>full</code>.</li>
-# 	<li>The <strong>minimum</strong> number of flowers in any of the <strong>incomplete</strong> gardens multiplied by <code>partial</code>. If there are no incomplete gardens, then this value will be <code>0</code>.</li>
-# </ul>
-# <p>Return <em>the <strong>maximum</strong> total beauty that Alice can obtain after planting at most </em><code>newFlowers</code><em> flowers.</em></p>
-# <p>&nbsp;</p>
-# <p><strong class="example">Example 1:</strong></p>
-# <pre>
-# <strong>Input:</strong> flowers = [1,3,1,1], newFlowers = 7, target = 6, full = 12, partial = 1
-# <strong>Output:</strong> 14
-# <strong>Explanation:</strong> Alice can plant
-# - 2 flowers in the 0<sup>th</sup> garden
-# - 3 flowers in the 1<sup>st</sup> garden
-# - 1 flower in the 2<sup>nd</sup> garden
-# - 1 flower in the 3<sup>rd</sup> garden
-# The gardens will then be [3,6,2,2]. She planted a total of 2 + 3 + 1 + 1 = 7 flowers.
-# There is 1 garden that is complete.
-# The minimum number of flowers in the incomplete gardens is 2.
-# Thus, the total beauty is 1 * 12 + 2 * 1 = 12 + 2 = 14.
-# No other way of planting flowers can obtain a total beauty higher than 14.
-# </pre>
-# <p><strong class="example">Example 2:</strong></p>
-# <pre>
-# <strong>Input:</strong> flowers = [2,4,5,3], newFlowers = 10, target = 5, full = 2, partial = 6
-# <strong>Output:</strong> 30
-# <strong>Explanation:</strong> Alice can plant
-# - 3 flowers in the 0<sup>th</sup> garden
-# - 0 flowers in the 1<sup>st</sup> garden
-# - 0 flowers in the 2<sup>nd</sup> garden
-# - 2 flowers in the 3<sup>rd</sup> garden
-# The gardens will then be [5,4,5,5]. She planted a total of 3 + 0 + 0 + 2 = 5 flowers.
-# There are 3 gardens that are complete.
-# The minimum number of flowers in the incomplete gardens is 4.
-# Thus, the total beauty is 3 * 2 + 4 * 6 = 6 + 24 = 30.
-# No other way of planting flowers can obtain a total beauty higher than 30.
-# Note that Alice could make all the gardens complete but in this case, she would obtain a lower total beauty.
-# </pre>
-# <p>&nbsp;</p>
-# <p><strong>Constraints:</strong></p>
-# <ul>
-# 	<li><code>1 &lt;= flowers.length &lt;= 10<sup>5</sup></code></li>
-# 	<li><code>1 &lt;= flowers[i], target &lt;= 10<sup>5</sup></code></li>
-# 	<li><code>1 &lt;= newFlowers &lt;= 10<sup>10</sup></code></li>
-# 	<li><code>1 &lt;= full, partial &lt;= 10<sup>5</sup></code></li>
-# </ul>
-
-# --------------------------------------
-# Test Case Generator Code:
-import random
-from itertools import accumulate
-from bisect import bisect_left
-from typing import List
-
-# Task solution class
-class Solution:
-    def maximumBeauty(
-        self, flowers: List[int], newFlowers: int, target: int, full: int, partial: int
-    ) -> int:
+class Solution(object):
+    def maximumBeauty(self, flowers, newFlowers, target, full, partial):
+        """
+        :type flowers: List[int]
+        :type newFlowers: int
+        :type target: int
+        :type full: int
+        :type partial: int
+        :rtype: int
+        """
+        # Cap each garden at 'target' flowers (no benefit to exceeding target)
+        flowers = [min(f, target) for f in flowers]
+        
+        # Sort flowers in ascending order for easier processing
         flowers.sort()
         n = len(flowers)
-        s = list(accumulate(flowers, initial=0))
-        ans, i = 0, n - bisect_left(flowers, target)
-        for x in range(i, n + 1):
-            newFlowers -= 0 if x == 0 else max(target - flowers[n - x], 0)
-            if newFlowers < 0:
+        
+        # If all gardens are already complete, return the beauty value
+        if flowers[0] >= target:
+            return n * full
+        
+        # Keep track of flowers needed to fill gardens from left to right
+        # prefix_sum[i] represents flowers needed to make all gardens from 0 to i have exactly flowers[i] flowers
+        prefix_sum = [0] * n
+        for i in range(1, n):
+            prefix_sum[i] = prefix_sum[i-1] + i * (flowers[i] - flowers[i-1])
+        
+        # Initialize answer
+        max_beauty = 0
+        
+        # Try different numbers of complete gardens (from 0 to n)
+        i = n - 1
+        complete_gardens = 0
+        
+        # We'll iterate backwards to handle complete gardens first
+        while i >= 0 and flowers[i] == target:
+            complete_gardens += 1
+            i -= 1
+        
+        remaining_flowers = newFlowers
+        
+        # Start with beauty from existing complete gardens
+        beauty_from_complete = complete_gardens * full
+        
+        # Try different scenarios with 'complete_gardens' through 'n' complete gardens
+        while True:
+            # Calculate how many flowers we have left for incomplete gardens
+            remaining = remaining_flowers
+            
+            # Skip if we have no incomplete gardens
+            if i < 0:
+                max_beauty = max(max_beauty, beauty_from_complete)
                 break
-            l, r = 0, n - x - 1
-            while l < r:
-                mid = (l + r + 1) >> 1
-                if flowers[mid] * (mid + 1) - s[mid + 1] <= newFlowers:
-                    l = mid
+            
+            # Calculate minimum possible value for incomplete gardens with remaining flowers
+            min_incomplete = 0
+            if i >= 0:  # If we have incomplete gardens
+                # Binary search to find maximum possible minimum value
+                left, right = flowers[0], target - 1
+                while left <= right:
+                    mid = (left + right) // 2
+                    
+                    # Find the index of the first garden with flowers >= mid
+                    idx = 0
+                    while idx <= i and flowers[idx] < mid:
+                        idx += 1
+                    
+                    # Calculate flowers needed to bring all gardens up to 'mid'
+                    needed = idx * mid - sum(flowers[:idx])
+                    
+                    if needed <= remaining:
+                        left = mid + 1
+                        min_incomplete = mid
+                    else:
+                        right = mid - 1
+                
+                # When all remaining flowers are used optimally on incomplete gardens
+                beauty = beauty_from_complete + min_incomplete * partial
+                max_beauty = max(max_beauty, beauty)
+            
+            # Try making the next garden complete
+            if i >= 0:
+                flowers_needed = target - flowers[i]
+                if flowers_needed <= remaining_flowers:
+                    remaining_flowers -= flowers_needed
+                    complete_gardens += 1
+                    beauty_from_complete = complete_gardens * full
+                    i -= 1
                 else:
-                    r = mid - 1
-            y = 0
-            if r != -1:
-                cost = flowers[l] * (l + 1) - s[l + 1]
-                y = min(flowers[l] + (newFlowers - cost) // (l + 1), target - 1)
-            ans = max(ans, x * full + y * partial)
-        return ans
-
-# Test case generator
-class TestCaseGenerator:
-    def __init__(self):
-        self.solution = Solution()
-
-    def generate_test_case(self):
-        # Generate random numbers list
-        flowers = random.sample(range(1, 101), random.randint(2, 10))
-
-        # Generate the maximum number of new flowers that Alice can plant
-        newFlowers = random.randint(1, 101)
-
-        # Generate the target number of flowers for completeness
-        target = random.randint(1, 101)
-
-        # Generate random values for full and partial beauty
-        full = random.randint(1, 101)
-        partial = random.randint(1, 101)
-
-        # Calculate the expected result using the provided Solution class
-        expected_result = self.solution.maximumBeauty(flowers, newFlowers, target, full, partial)
-
-        return flowers, newFlowers, target, full, partial, expected_result
-
-    def test_generated_test_cases(self, num_tests):
-        test_case_generator_results = []
-        for i in range(num_tests):
-            flowers, newFlowers, target, full, partial, expected_result = self.generate_test_case()
-            solution = Solution()
-            assert solution.maximumBeauty(flowers, newFlowers, target, full, partial) == expected_result
-            print(f"assert solution.maximumBeauty({flowers}, {newFlowers}, {target}, {full}, {partial}) == {expected_result}")
-            test_case_generator_results.append(f"assert solution.maximumBeauty({flowers}, {newFlowers}, {target}, {full}, {partial}) == {expected_result}")
-        return test_case_generator_results
-
-if __name__ == "__main__":
-    num_tests = 100  # You can change this to generate more test cases
-    test_case_generator = TestCaseGenerator()
-    test_case_generator_results = test_case_generator.test_generated_test_cases(num_tests)
-
+                    break
+        
+        return max_beauty
+    
 solution=Solution()
 # --------------------------------------
 # Test Cases:
@@ -226,10 +194,3 @@ assert solution.maximumBeauty([9, 81], 52, 60, 87, 81) == 4866
 assert solution.maximumBeauty([61, 71, 79], 37, 70, 2, 67) == 4627
 assert solution.maximumBeauty([65, 71], 8, 67, 12, 41) == 2718
 assert solution.maximumBeauty([1, 32, 38, 61, 81, 83], 11, 73, 26, 5) == 112
-
-if __name__ == '__main__':
-    # To run the generated test cases or custom testing code, modify below.
-    # For example:
-    # num_tests = 100
-    # test_generated_test_cases(num_tests)
-    pass
