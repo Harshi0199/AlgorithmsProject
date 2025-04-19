@@ -83,7 +83,7 @@ def run_script(filepath):
         stdout = ""
         stderr = str(e)
     end_ns = time.perf_counter_ns()
-    exec_time_ns = end_ns - start_ns
+    exec_time_ns = (end_ns - start_ns)/1000000
     return (filepath, return_code, exec_time_ns, stdout, stderr)
 
 
@@ -211,16 +211,16 @@ def main():
       <tr>
         <th>Pass</th>
         <th>Fail</th>
-        <th>Time (ns)</th>
+        <th>Time (ms)</th>
         <th>Pass</th>
         <th>Fail</th>
-        <th>Time (ns)</th>
+        <th>Time (ms)</th>
         <th>Pass</th>
         <th>Fail</th>
-        <th>Time (ns)</th>
+        <th>Time (ms)</th>
         <th>Pass</th>
         <th>Fail</th>
-        <th>Time (ns)</th>
+        <th>Time (ms)</th>
       </tr>
     </thead>
     <tbody>
