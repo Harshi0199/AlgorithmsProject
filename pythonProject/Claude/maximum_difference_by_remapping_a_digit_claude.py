@@ -40,13 +40,31 @@ import random
 
 class Solution:
     def minMaxDifference(self, num: int) -> int:
-        s = str(num)
-        mi = int(s.replace(s[0], '0'))
-        for c in s:
-            if c != '9':
-                return int(s.replace(c, '9')) - mi
-        return num - mi
+        # Convert number to string for easier digit manipulation
+        num_str = str(num)
+        
+        # Find maximum possible value
+        max_val = num
+        for digit in set(num_str):
+            # Try replacing each digit with 9
+            new_val = int(num_str.replace(digit, '9'))
+            max_val = max(max_val, new_val)
+        
+        # Find minimum possible value
+        min_val = num
+        # First try replacing the first digit with 0
+        first_digit = num_str[0]
+        min_val = min(min_val, int(num_str.replace(first_digit, '0')))
+        
+        # Also try all other digits
+        for digit in set(num_str):
+            # Try replacing each digit with 0
+            new_val = int(num_str.replace(digit, '0'))
+            min_val = min(min_val, new_val)
+        
+        return max_val - min_val
 
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.minMaxDifference(20804427) == 90000090

@@ -31,17 +31,29 @@
 # --------------------------------------
 # Test Case Generator Code:
 import random
-from bisect import bisect_right
-from itertools import accumulate
-
 
 class Solution:
-    def answerQueries(self, nums, queries):
+    def answerQueries(self, nums: list[int], queries: list[int]) -> list[int]:
         nums.sort()
-        s = list(accumulate(nums))
-        return [bisect_right(s, q) for q in queries]
+        prefix_sum = [0] * (len(nums) + 1)
+        for i in range(len(nums)):
+            prefix_sum[i + 1] = prefix_sum[i] + nums[i]
 
+        answer = []
+        for q in queries:
+            left, right = 0, len(nums)
+            ans = 0
+            while left <= right:
+                mid = (left + right) // 2
+                if prefix_sum[mid] <= q:
+                    ans = mid
+                    left = mid + 1
+                else:
+                    right = mid - 1
+            answer.append(ans)
+        return answer
 
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.answerQueries([9, 12, 13, 23, 23, 24, 42, 47, 54, 91], [26, 90, 87, 47]) == [2, 5, 5, 3]

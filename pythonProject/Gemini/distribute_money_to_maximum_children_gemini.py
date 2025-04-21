@@ -38,17 +38,26 @@
 # Test Case Generator Code:
 import random
 
+
 class Solution:
     def distMoney(self, money: int, children: int) -> int:
         if money < children:
             return -1
-        if money > 8 * children:
-            return children - 1
-        if money == 8 * children - 4:
-            return children - 2
-        # money-8x >= children-x, x <= (money-children)/7
-        return (money - children) // 7
 
+        money -= children
+
+        count = min(money // 7, children)
+        money -= count * 7
+        children -= count
+
+        if children == 0:
+            if money > 0:
+                count -= 1
+        elif children == 1 and money == 3:
+            count -= 1
+
+        return count
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.distMoney(33, 14) == 2

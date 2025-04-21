@@ -37,15 +37,21 @@
 import random
 
 class Solution:
-    def kItemsWithMaximumSum(
-        self, numOnes: int, numZeros: int, numNegOnes: int, k: int
-    ) -> int:
-        if numOnes >= k:
-            return k
-        if numZeros >= k - numOnes:
-            return numOnes
-        return numOnes - (k - numOnes - numZeros)
+    def kItemsWithMaximumSum(self, numOnes: int, numZeros: int, numNegOnes: int, k: int) -> int:
+        # First pick as many 1s as possible
+        pickOnes = min(numOnes, k)
+        k -= pickOnes
 
+        # Then pick 0s (they don't affect the sum)
+        pickZeros = min(numZeros, k)
+        k -= pickZeros
+
+        # Then if any picks are left, they have to be -1s, which reduce the sum
+        pickNegOnes = k  # only -1s left to pick
+
+        return pickOnes - pickNegOnes
+
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.kItemsWithMaximumSum(8, 10, 8, 10) == 8

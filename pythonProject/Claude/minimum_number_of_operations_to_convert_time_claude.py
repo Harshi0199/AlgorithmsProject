@@ -35,15 +35,26 @@ import random
 
 class Solution:
     def convertTime(self, current: str, correct: str) -> int:
-        a = int(current[:2]) * 60 + int(current[3:])
-        b = int(correct[:2]) * 60 + int(correct[3:])
-        ans, d = 0, b - a
-        for i in [60, 15, 5, 1]:
-            ans += d // i
-            d %= i
-        return ans
+        # Convert times to minutes
+        def time_to_minutes(time_str):
+            hours, minutes = map(int, time_str.split(":"))
+            return hours * 60 + minutes
+        
+        current_minutes = time_to_minutes(current)
+        correct_minutes = time_to_minutes(correct)
+        
+        # Calculate the difference in minutes
+        diff = correct_minutes - current_minutes
+        
+        # Greedy approach to find minimum operations
+        operations = 0
+        for increment in [60, 15, 5, 1]:
+            operations += diff // increment
+            diff %= increment
+        
+        return operations
 
-
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.convertTime('13:45', '22:45') == 9

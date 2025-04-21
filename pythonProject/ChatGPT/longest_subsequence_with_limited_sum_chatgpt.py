@@ -31,17 +31,27 @@
 # --------------------------------------
 # Test Case Generator Code:
 import random
-from bisect import bisect_right
-from itertools import accumulate
 
+from typing import List
+import bisect
 
 class Solution:
-    def answerQueries(self, nums, queries):
+    def answerQueries(self, nums: List[int], queries: List[int]) -> List[int]:
         nums.sort()
-        s = list(accumulate(nums))
-        return [bisect_right(s, q) for q in queries]
+        prefix_sums = [0]
+        
+        for num in nums:
+            prefix_sums.append(prefix_sums[-1] + num)
+        
+        result = []
+        for q in queries:
+            # Find the rightmost index where prefix_sum is <= q
+            idx = bisect.bisect_right(prefix_sums, q) - 1
+            result.append(idx)
+        
+        return result
 
-
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.answerQueries([9, 12, 13, 23, 23, 24, 42, 47, 54, 91], [26, 90, 87, 47]) == [2, 5, 5, 3]

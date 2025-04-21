@@ -35,28 +35,38 @@
 # --------------------------------------
 # Test Case Generator Code:
 import random
-from typing import List
-
 
 class Solution:
-    def lemonadeChange(self, bills: List[int]) -> bool:
-        five = ten = 0
-        for v in bills:
-            if v == 5:
-                five += 1
-            elif v == 10:
-                ten += 1
-                five -= 1
-            else:
-                if ten:
-                    ten -= 1
-                    five -= 1
+    def lemonadeChange(self, bills: list[int]) -> bool:
+        # Track the count of each bill type we have
+        five_count = 0
+        ten_count = 0
+        
+        for bill in bills:
+            if bill == 5:
+                # No change needed, just keep the $5 bill
+                five_count += 1
+            elif bill == 10:
+                # Need to give $5 change
+                if five_count == 0:
+                    return False
+                five_count -= 1
+                ten_count += 1
+            elif bill == 20:
+                # Need to give $15 change
+                # Try to use a $10 and a $5 if possible
+                if ten_count >= 1 and five_count >= 1:
+                    ten_count -= 1
+                    five_count -= 1
+                # Otherwise, try to use three $5 bills
+                elif five_count >= 3:
+                    five_count -= 3
                 else:
-                    five -= 3
-            if five < 0:
-                return False
+                    return False
+        
         return True
 
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.lemonadeChange([10, 20, 20, 10, 10, 20, 5, 20, 20, 20]) == False

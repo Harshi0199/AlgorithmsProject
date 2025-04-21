@@ -31,17 +31,41 @@
 # --------------------------------------
 # Test Case Generator Code:
 import random
-from bisect import bisect_right
-from itertools import accumulate
-
 
 class Solution:
-    def answerQueries(self, nums, queries):
+    def answerQueries(self, nums: list[int], queries: list[int]) -> list[int]:
+        # Sort nums in ascending order
         nums.sort()
-        s = list(accumulate(nums))
-        return [bisect_right(s, q) for q in queries]
+        
+        # Calculate prefix sum array
+        prefix_sums = []
+        current_sum = 0
+        for num in nums:
+            current_sum += num
+            prefix_sums.append(current_sum)
+        
+        # Process each query
+        result = []
+        for query in queries:
+            # Binary search to find the largest index where prefix_sum <= query
+            left, right = 0, len(nums) - 1
+            index = -1
+            
+            while left <= right:
+                mid = (left + right) // 2
+                if prefix_sums[mid] <= query:
+                    index = mid
+                    left = mid + 1
+                else:
+                    right = mid - 1
+            
+            # Add one to the index to get the length of the subsequence
+            # If index is -1, no elements can be included
+            result.append(index + 1)
+        
+        return result
 
-
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.answerQueries([9, 12, 13, 23, 23, 24, 42, 47, 54, 91], [26, 90, 87, 47]) == [2, 5, 5, 3]

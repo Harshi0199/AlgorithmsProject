@@ -1,3 +1,4 @@
+
 # Problem 2600: K Items With the Maximum Sum
 # Difficulty: Easy
 # Description:
@@ -42,10 +43,12 @@ class Solution:
     ) -> int:
         if numOnes >= k:
             return k
-        if numZeros >= k - numOnes:
+        elif numOnes + numZeros >= k:
             return numOnes
-        return numOnes - (k - numOnes - numZeros)
+        else:
+            return numOnes - (k - numOnes - numZeros)
 
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.kItemsWithMaximumSum(8, 10, 8, 10) == 8

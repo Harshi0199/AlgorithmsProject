@@ -38,17 +38,63 @@
 # Test Case Generator Code:
 import random
 
+
 class Solution:
     def distMoney(self, money: int, children: int) -> int:
+        # It is impossible to distribute money if we don't have at least 1 dollar per child.
         if money < children:
             return -1
-        if money > 8 * children:
-            return children - 1
-        if money == 8 * children - 4:
-            return children - 2
-        # money-8x >= children-x, x <= (money-children)/7
-        return (money - children) // 7
 
+        # Give every child 1 dollar. The remaining extra amount.
+        extra = money - children
+
+        # Let x be the number of children who receive exactly 8 dollars.
+        # Since every child already got 1 dollar, these x children must get an extra 7 dollars each.
+        # Thus, a candidate x is feasible only if extra >= 7*x.
+        # Moreover, let T = extra - 7*x be the remaining extra dollars to distribute over the other (children - x) kids.
+        # These children will end up with 1 + (their extra). We have the constraint that no child can end up with 4 dollars,
+        # i.e. no child can get exactly 3 extra dollars.
+        #
+        # For groups of children where (children - x) >= 2, we can always partition T (≥ 0) among them
+        # in such a way to avoid any one child receiving exactly 3 extra dollars.
+        # The only delicate case is when there is exactly one remaining child (children - x == 1).
+        # In that case the single child would have to receive all of T. If T equals 3 then that child's total becomes 4,
+        # which is forbidden.
+        #
+        # Also, when x == children (i.e. everyone gets exactly 8 dollars) then the leftover T must be 0.
+
+        # The maximum potential x (ignoring the leftover partition constraint) is bounded by:
+        max_possible = min(children, extra // 7)
+
+        # Try from the maximum candidate x downward until we find one that allows a valid partition of the remaining extra dollars.
+        for x in range(max_possible, -1, -1):
+            remaining_children = children - x  # children who are NOT getting exactly 8 dollars
+            leftover = extra - 7 * x  # remaining extra dollars after giving x children an extra 7 dollars
+
+            if remaining_children == 0:
+                # In this case all children get exactly 8 dollars,
+                # so the leftover extra dollars must be exactly 0.
+                if leftover == 0:
+                    return x
+                else:
+                    continue
+
+            if remaining_children == 1:
+                # With one child, that child must get all leftover dollars.
+                # If leftover equals 3 then that child's total will be 1 + 3 = 4 dollars, which is forbidden.
+                if leftover == 3:
+                    continue
+                else:
+                    return x
+
+            # For two or more remaining children, we can always partition leftover among them
+            # while ensuring that none of them ends up receiving exactly 3 extra dollars.
+            return x
+
+        return -1
+
+
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.distMoney(33, 14) == 2

@@ -27,16 +27,24 @@
 # Test Case Generator Code:
 import random
 from collections import Counter
+from collections import Counter
 
 class Solution:
     def longestPalindrome(self, s: str) -> int:
-        cnt = Counter(s)
-        ans = 0
-        for v in cnt.values():
-            ans += v - (v & 1)
-            ans += (ans & 1 ^ 1) and (v & 1)
-        return ans
+        counts = Counter(s)
+        length = 0
+        has_odd = False
+        for count in counts.values():
+            if count % 2 == 0:
+                length += count
+            else:
+                length += count - 1
+                has_odd = True
+        if has_odd:
+            length += 1
+        return length
 
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.longestPalindrome("GxyDLlAh") == 1

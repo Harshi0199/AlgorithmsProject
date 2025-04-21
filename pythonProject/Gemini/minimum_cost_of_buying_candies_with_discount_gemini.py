@@ -47,10 +47,16 @@
 import random
 
 class Solution:
-    def minimumCost(self, cost):
+    def minimumCost(self, cost: list[int]) -> int:
         cost.sort(reverse=True)
-        return sum(cost) - sum(cost[2::3])
+        total_cost = 0
+        for i in range(0, len(cost), 3):
+            total_cost += cost[i]
+            if i + 1 < len(cost):
+                total_cost += cost[i + 1]
+        return total_cost
 
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.minimumCost([97, 96, 95, 94, 94, 93, 91, 91, 88, 85, 83, 83, 82, 81, 81, 81, 79, 71, 70, 69, 68, 64, 64, 54, 54, 53, 53, 49, 48, 47, 46, 45, 42, 40, 38, 35, 34, 33, 32, 27, 26, 25, 23, 20, 17, 17, 14, 12, 8, 8]) == 1904

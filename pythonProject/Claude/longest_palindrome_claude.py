@@ -28,15 +28,34 @@
 import random
 from collections import Counter
 
+from collections import Counter
+
 class Solution:
     def longestPalindrome(self, s: str) -> int:
-        cnt = Counter(s)
-        ans = 0
-        for v in cnt.values():
-            ans += v - (v & 1)
-            ans += (ans & 1 ^ 1) and (v & 1)
-        return ans
+        # Count occurrences of each character
+        char_counts = Counter(s)
+        
+        length = 0
+        odd_count_exists = False
+        
+        # For each character count
+        for count in char_counts.values():
+            # If count is even, we can use all of them
+            if count % 2 == 0:
+                length += count
+            else:
+                # If count is odd, we can use (count-1) characters
+                length += count - 1
+                odd_count_exists = True
+        
+        # If there's at least one character with odd count,
+        # we can put one in the middle
+        if odd_count_exists:
+            length += 1
+            
+        return length
 
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.longestPalindrome("GxyDLlAh") == 1

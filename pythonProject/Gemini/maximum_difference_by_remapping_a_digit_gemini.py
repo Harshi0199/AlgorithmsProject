@@ -38,15 +38,108 @@
 # Test Case Generator Code:
 import random
 
-class Solution:
-    def minMaxDifference(self, num: int) -> int:
-        s = str(num)
-        mi = int(s.replace(s[0], '0'))
-        for c in s:
-            if c != '9':
-                return int(s.replace(c, '9')) - mi
-        return num - mi
+import math
 
+import math
+
+class Solution:
+    """
+    Calculates the difference between the maximum and minimum values achievable 
+    by remapping exactly one digit (0-9) in the input number to another digit (0-9).
+
+    When remapping a digit d1 to d2, all occurrences of d1 are replaced by d2.
+    Bob can remap different digits for obtaining minimum and maximum values respectively. 
+    The resulting number after remapping can contain leading zeroes, which are 
+    handled correctly during integer conversion.
+    """
+    def minMaxDifference(self, num: int) -> int: # Renamed method from maxDiff to minMaxDifference
+        """
+        Finds the maximum and minimum possible values after remapping exactly one 
+        digit and returns their difference.
+
+        Args:
+            num: The input integer (Constraints: 1 <= num <= 10^8).
+
+        Returns:
+            The difference between the maximum (a) and minimum (b) remapped values.
+        """
+        s = str(num)
+        n = len(s)
+
+        # Helper function for performing the digit replacement and converting the result to an integer.
+        def replace_and_convert(original_s: str, digit_to_replace: str, replace_with: str) -> int:
+            """
+            Replaces all occurrences of digit_to_replace with replace_with 
+            in original_s and converts the resulting string to an integer.
+
+            Args:
+                original_s: The original number as a string.
+                digit_to_replace: The character digit ('0'-'9') to be replaced.
+                replace_with: The character digit ('0'-'9') to replace with.
+
+            Returns:
+                The integer value after replacement. Handles leading zeros automatically.
+            """
+            # String's replace method handles cases where digit_to_replace is not found (no change).
+            new_s = original_s.replace(digit_to_replace, replace_with)
+            # int() handles conversion and leading zeros correctly (e.g., int("00890") == 890).
+            return int(new_s)
+
+        # --- Calculate maximum value (a) ---
+        # To achieve the maximum value, we want to replace a digit with '9'.
+        # To maximize the effect, we should choose the leftmost digit that is not already '9'.
+        # If all digits are '9', no replacement can increase the value, so the maximum is the number itself.
+        
+        a = num # Initialize max value with the original number.
+        digit_to_replace_max = '' 
+        for digit in s:
+            # Find the first digit from the left that is not '9'.
+            if digit != '9':
+                digit_to_replace_max = digit
+                break 
+        
+        # If we found a digit that is not '9', replace all its occurrences with '9'.
+        if digit_to_replace_max: 
+             a = replace_and_convert(s, digit_to_replace_max, '9')
+        # Otherwise (all digits are '9'), 'a' remains the original 'num'.
+
+        # --- Calculate minimum value (b) ---
+        # To achieve the minimum value, we want to replace a digit with '0' or '1'.
+        # We consider two main strategies that prioritize changes affecting the most significant digits.
+
+        # Strategy 1 (min_b1): Replace the first digit s[0] with '0'.
+        # This generally yields the smallest number if we target '0' as the replacement,
+        # as it affects the most significant position.
+        min_b1 = replace_and_convert(s, s[0], '0')
+
+        # Strategy 2 (min_b2): Try replacing a digit with '1'. 
+        # This is particularly relevant if the first digit is already small (like '1') 
+        # or if replacing a later digit with '1' is more beneficial than Strategy 1.
+        # We find the *first* digit `d` (from the left) that is not '0' and not '1'. 
+        # Replacing this `d` with '1' is the best candidate for minimization using '1'.
+        
+        min_b2 = num # Initialize this candidate with the original number.
+                      # If no suitable digit is found, this value will be used in the final min comparison.
+        digit_to_replace_min = ''
+        for digit in s:
+             # Find the first digit that is greater than '1'.
+             if digit != '0' and digit != '1':
+                 digit_to_replace_min = digit
+                 break
+        
+        # If we found such a digit (i.e., the number is not composed only of '0's and '1's),
+        # replace all its occurrences with '1'.
+        if digit_to_replace_min: 
+            min_b2 = replace_and_convert(s, digit_to_replace_min, '1')
+        # Otherwise, min_b2 remains 'num'. This handles cases like "100", "111", etc., correctly.
+
+        # The overall minimum value (b) is the minimum result achieved by either Strategy 1 or Strategy 2.
+        b = min(min_b1, min_b2)
+
+        # Return the difference between the maximum (a) and minimum (b) values.
+        return a - b
+    
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.minMaxDifference(20804427) == 90000090

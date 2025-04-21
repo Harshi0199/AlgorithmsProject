@@ -40,15 +40,32 @@ import random
 
 class Solution:
     def distMoney(self, money: int, children: int) -> int:
-        if money < children:
+        # Rule: Everyone must receive at least 1 dollar
+        money -= children
+        
+        # If we can't give at least $1 to each child, return -1
+        if money < 0:
             return -1
-        if money > 8 * children:
-            return children - 1
-        if money == 8 * children - 4:
-            return children - 2
-        # money-8x >= children-x, x <= (money-children)/7
-        return (money - children) // 7
+        
+        # Maximum possible children who can get $8 (i.e., $7 more after the initial $1)
+        max_eight = min(money // 7, children)
+        
+        # Remaining money after giving $8 to max_eight children
+        remaining = money - (max_eight * 7)
+        
+        # If one child left and remaining money is 3 (which would make a total of 4),
+        # we need to adjust because nobody can get exactly 4 dollars
+        if max_eight == children and remaining > 0:
+            return max_eight - 1
+        
+        # If exactly one child is left and remaining money is 3,
+        # we would end up giving 4 dollars to the last child, which is not allowed
+        if max_eight == children - 1 and remaining == 3:
+            return max_eight - 1
+        
+        return max_eight
 
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.distMoney(33, 14) == 2

@@ -33,17 +33,29 @@
 # Test Case Generator Code:
 import random
 
+
 class Solution:
     def convertTime(self, current: str, correct: str) -> int:
-        a = int(current[:2]) * 60 + int(current[3:])
-        b = int(correct[:2]) * 60 + int(correct[3:])
-        ans, d = 0, b - a
-        for i in [60, 15, 5, 1]:
-            ans += d // i
-            d %= i
-        return ans
+        current_hour, current_minute = map(int, current.split(':'))
+        correct_hour, correct_minute = map(int, correct.split(':'))
 
+        current_total_minutes = current_hour * 60 + current_minute
+        correct_total_minutes = correct_hour * 60 + correct_minute
 
+        diff = correct_total_minutes - current_total_minutes
+        operations = 0
+
+        operations += diff // 60
+        diff %= 60
+        operations += diff // 15
+        diff %= 15
+        operations += diff // 5
+        diff %= 5
+        operations += diff
+
+        return operations
+
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.convertTime('13:45', '22:45') == 9

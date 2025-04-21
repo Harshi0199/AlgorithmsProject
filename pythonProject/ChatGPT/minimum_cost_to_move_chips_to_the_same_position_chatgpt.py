@@ -40,14 +40,17 @@
 # --------------------------------------
 # Test Case Generator Code:
 import random
-from typing import List
+
+from typing import *
 
 class Solution:
     def minCostToMoveChips(self, position: List[int]) -> int:
-        a = sum(p % 2 for p in position)
-        b = len(position) - a
-        return min(a, b)
+        even = sum(1 for p in position if p % 2 == 0)
+        odd = len(position) - even
+        return min(even, odd)
 
+
+# --------------------------------------
 # Test Cases:
 solution = Solution()
 assert solution.minCostToMoveChips([36, 19]) == 1
